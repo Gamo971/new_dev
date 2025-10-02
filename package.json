@@ -1,0 +1,10 @@
+{
+  "name": "php-cursor-starter",
+  "private": true,
+  "scripts": {
+    "format": "prettier -w \"**/*.{js,css,html,md,php}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.3.2"
+  }
+}
