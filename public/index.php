@@ -171,6 +171,27 @@ header('Content-Type: text/html; charset=utf-8');
                         </select>
                     </div>
                     
+                    <!-- Options de tri -->
+                    <div class="mb-6 flex items-center gap-4 border-t border-b border-gray-200 py-4">
+                        <label class="text-sm font-semibold text-gray-700">
+                            <i class="fas fa-sort mr-2"></i>Trier par:
+                        </label>
+                        <select id="tacheSortBy" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                            <option value="date_creation_desc">Date de création (plus récent)</option>
+                            <option value="date_creation_asc">Date de création (plus ancien)</option>
+                            <option value="priorite_desc">Priorité (haute → basse)</option>
+                            <option value="priorite_asc">Priorité (basse → haute)</option>
+                            <option value="echeance_asc">Échéance (proche → lointaine)</option>
+                            <option value="echeance_desc">Échéance (lointaine → proche)</option>
+                            <option value="statut">Statut (À faire → Terminée)</option>
+                            <option value="nom_asc">Nom (A → Z)</option>
+                            <option value="nom_desc">Nom (Z → A)</option>
+                            <option value="mission">Mission</option>
+                            <option value="temps_estime_desc">Temps estimé (plus long → plus court)</option>
+                            <option value="temps_estime_asc">Temps estimé (plus court → plus long)</option>
+                        </select>
+                    </div>
+                    
                     <!-- Liste des tâches -->
                     <div id="tachesList" class="space-y-4">
                         <!-- Les tâches seront chargées ici -->
@@ -837,7 +858,10 @@ header('Content-Type: text/html; charset=utf-8');
                 return;
             }
             
-            container.innerHTML = tachesToShow.map(tache => `
+            // Appliquer le tri
+            const sortedTaches = sortTaches(tachesToShow);
+            
+            container.innerHTML = sortedTaches.map(tache => `
                 <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                     <div class="flex justify-between items-start mb-4">
                         <div>
@@ -1054,6 +1078,7 @@ header('Content-Type: text/html; charset=utf-8');
             document.getElementById('tacheSearch').addEventListener('input', filterTaches);
             document.getElementById('tacheStatutFilter').addEventListener('change', filterTaches);
             document.getElementById('tachePrioriteFilter').addEventListener('change', filterTaches);
+            document.getElementById('tacheSortBy').addEventListener('change', filterTaches);
             
             // Recherche des clients
             document.getElementById('clientSearch').addEventListener('input', filterClients);
@@ -1641,6 +1666,69 @@ header('Content-Type: text/html; charset=utf-8');
                 console.error('Erreur:', error);
                 showNotification('Erreur lors de la suppression', 'error');
             }
+        }
+
+        // Fonction de tri des tâches
+        function sortTaches(tachesToSort) {
+            const sortBy = document.getElementById('tacheSortBy').value;
+            const sorted = [...tachesToSort];
+            
+            const prioriteOrder = { 'urgente': 4, 'haute': 3, 'normale': 2, 'basse': 1 };
+            const statutOrder = { 'a_faire': 1, 'en_cours': 2, 'terminee': 3, 'annulee': 4 };
+            
+            switch(sortBy) {
+                case 'date_creation_desc':
+                    sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    break;
+                case 'date_creation_asc':
+                    sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                    break;
+                case 'priorite_desc':
+                    sorted.sort((a, b) => (prioriteOrder[b.priorite] || 0) - (prioriteOrder[a.priorite] || 0));
+                    break;
+                case 'priorite_asc':
+                    sorted.sort((a, b) => (prioriteOrder[a.priorite] || 0) - (prioriteOrder[b.priorite] || 0));
+                    break;
+                case 'echeance_asc':
+                    sorted.sort((a, b) => {
+                        if (!a.date_echeance && !b.date_echeance) return 0;
+                        if (!a.date_echeance) return 1;
+                        if (!b.date_echeance) return -1;
+                        return new Date(a.date_echeance) - new Date(b.date_echeance);
+                    });
+                    break;
+                case 'echeance_desc':
+                    sorted.sort((a, b) => {
+                        if (!a.date_echeance && !b.date_echeance) return 0;
+                        if (!a.date_echeance) return 1;
+                        if (!b.date_echeance) return -1;
+                        return new Date(b.date_echeance) - new Date(a.date_echeance);
+                    });
+                    break;
+                case 'statut':
+                    sorted.sort((a, b) => (statutOrder[a.statut] || 0) - (statutOrder[b.statut] || 0));
+                    break;
+                case 'nom_asc':
+                    sorted.sort((a, b) => a.nom.localeCompare(b.nom));
+                    break;
+                case 'nom_desc':
+                    sorted.sort((a, b) => b.nom.localeCompare(a.nom));
+                    break;
+                case 'mission':
+                    sorted.sort((a, b) => (a.mission_nom || '').localeCompare(b.mission_nom || ''));
+                    break;
+                case 'temps_estime_desc':
+                    sorted.sort((a, b) => (b.temps_estime || 0) - (a.temps_estime || 0));
+                    break;
+                case 'temps_estime_asc':
+                    sorted.sort((a, b) => (a.temps_estime || 0) - (b.temps_estime || 0));
+                    break;
+                default:
+                    // Par défaut: date de création descendante
+                    sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            }
+            
+            return sorted;
         }
 
         // Fonction de notification
