@@ -209,24 +209,98 @@ header('Content-Type: text/html; charset=utf-8');
                     </div>
                     
                     <!-- Options de tri -->
-                    <div class="mb-6 flex items-center gap-4 border-t border-b border-gray-200 py-4">
-                        <label class="text-sm font-semibold text-gray-700">
-                            <i class="fas fa-sort mr-2"></i>Trier par:
-                        </label>
-                        <select id="tacheSortBy" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
-                            <option value="date_creation_desc">Date de création (plus récent)</option>
-                            <option value="date_creation_asc">Date de création (plus ancien)</option>
-                            <option value="priorite_desc">Priorité (haute → basse)</option>
-                            <option value="priorite_asc">Priorité (basse → haute)</option>
-                            <option value="echeance_asc">Échéance (proche → lointaine)</option>
-                            <option value="echeance_desc">Échéance (lointaine → proche)</option>
-                            <option value="statut">Statut (À faire → Terminée)</option>
-                            <option value="nom_asc">Nom (A → Z)</option>
-                            <option value="nom_desc">Nom (Z → A)</option>
-                            <option value="mission">Mission</option>
-                            <option value="temps_estime_desc">Temps estimé (plus long → plus court)</option>
-                            <option value="temps_estime_asc">Temps estimé (plus court → plus long)</option>
-                        </select>
+                    <div class="mb-6 border-t border-b border-gray-200 py-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fas fa-sort text-green-600"></i>
+                            <span class="text-sm font-semibold text-gray-700">Trier par:</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <!-- Tri par date -->
+                            <button onclick="changeTachesSort('date_creation_desc')" 
+                                    class="tache-sort-btn px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-blue-50 hover:border-blue-300 transition-colors flex items-center gap-2"
+                                    data-sort="date_creation_desc">
+                                <i class="fas fa-calendar-alt text-blue-600"></i>
+                                <span>Plus récent</span>
+                            </button>
+                            <button onclick="changeTachesSort('date_creation_asc')" 
+                                    class="tache-sort-btn px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-blue-50 hover:border-blue-300 transition-colors flex items-center gap-2"
+                                    data-sort="date_creation_asc">
+                                <i class="fas fa-calendar-alt text-blue-400"></i>
+                                <span>Plus ancien</span>
+                            </button>
+                            
+                            <!-- Tri par priorité -->
+                            <button onclick="changeTachesSort('priorite_desc')" 
+                                    class="tache-sort-btn px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-red-50 hover:border-red-300 transition-colors flex items-center gap-2"
+                                    data-sort="priorite_desc">
+                                <i class="fas fa-arrow-up text-red-600"></i>
+                                <span>Priorité ↓</span>
+                            </button>
+                            <button onclick="changeTachesSort('priorite_asc')" 
+                                    class="tache-sort-btn px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-green-50 hover:border-green-300 transition-colors flex items-center gap-2"
+                                    data-sort="priorite_asc">
+                                <i class="fas fa-arrow-down text-green-600"></i>
+                                <span>Priorité ↑</span>
+                            </button>
+                            
+                            <!-- Tri par échéance -->
+                            <button onclick="changeTachesSort('echeance_asc')" 
+                                    class="tache-sort-btn px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-orange-50 hover:border-orange-300 transition-colors flex items-center gap-2"
+                                    data-sort="echeance_asc">
+                                <i class="fas fa-clock text-orange-600"></i>
+                                <span>Échéance proche</span>
+                            </button>
+                            <button onclick="changeTachesSort('echeance_desc')" 
+                                    class="tache-sort-btn px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-orange-50 hover:border-orange-300 transition-colors flex items-center gap-2"
+                                    data-sort="echeance_desc">
+                                <i class="fas fa-clock text-orange-400"></i>
+                                <span>Échéance lointaine</span>
+                            </button>
+                            
+                            <!-- Tri par statut -->
+                            <button onclick="changeTachesSort('statut')" 
+                                    class="tache-sort-btn px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-purple-50 hover:border-purple-300 transition-colors flex items-center gap-2"
+                                    data-sort="statut">
+                                <i class="fas fa-tasks text-purple-600"></i>
+                                <span>Par statut</span>
+                            </button>
+                            
+                            <!-- Tri alphabétique -->
+                            <button onclick="changeTachesSort('nom_asc')" 
+                                    class="tache-sort-btn px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-indigo-50 hover:border-indigo-300 transition-colors flex items-center gap-2"
+                                    data-sort="nom_asc">
+                                <i class="fas fa-sort-alpha-down text-indigo-600"></i>
+                                <span>A → Z</span>
+                            </button>
+                            <button onclick="changeTachesSort('nom_desc')" 
+                                    class="tache-sort-btn px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-indigo-50 hover:border-indigo-300 transition-colors flex items-center gap-2"
+                                    data-sort="nom_desc">
+                                <i class="fas fa-sort-alpha-up text-indigo-600"></i>
+                                <span>Z → A</span>
+                            </button>
+                            
+                            <!-- Tri par mission -->
+                            <button onclick="changeTachesSort('mission')" 
+                                    class="tache-sort-btn px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-teal-50 hover:border-teal-300 transition-colors flex items-center gap-2"
+                                    data-sort="mission">
+                                <i class="fas fa-briefcase text-teal-600"></i>
+                                <span>Par mission</span>
+                            </button>
+                            
+                            <!-- Tri par temps -->
+                            <button onclick="changeTachesSort('temps_estime_desc')" 
+                                    class="tache-sort-btn px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-amber-50 hover:border-amber-300 transition-colors flex items-center gap-2"
+                                    data-sort="temps_estime_desc">
+                                <i class="fas fa-hourglass-end text-amber-600"></i>
+                                <span>Plus long</span>
+                            </button>
+                            <button onclick="changeTachesSort('temps_estime_asc')" 
+                                    class="tache-sort-btn px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-amber-50 hover:border-amber-300 transition-colors flex items-center gap-2"
+                                    data-sort="temps_estime_asc">
+                                <i class="fas fa-hourglass-start text-amber-600"></i>
+                                <span>Plus court</span>
+                            </button>
+                        </div>
                     </div>
                     
                     <!-- Liste des tâches -->
@@ -743,11 +817,15 @@ header('Content-Type: text/html; charset=utf-8');
         let clients = [];
         let contacts = [];
         let currentTab = 'missions';
+        let currentTacheSort = 'date_creation_desc'; // Tri par défaut
 
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
             loadAllData();
             setupEventListeners();
+            
+            // Initialiser le bouton de tri par défaut
+            changeTachesSort('date_creation_desc');
         });
 
         // Gestion des onglets
@@ -1113,7 +1191,6 @@ header('Content-Type: text/html; charset=utf-8');
             
             // Recherche des tâches
             document.getElementById('tacheSearch').addEventListener('input', filterTaches);
-            document.getElementById('tacheSortBy').addEventListener('change', filterTaches);
             
             // Filtres de statut des tâches (checkboxes)
             document.querySelectorAll('.tache-statut-filter').forEach(checkbox => {
@@ -1722,9 +1799,28 @@ header('Content-Type: text/html; charset=utf-8');
             }
         }
 
+        // Changer le tri des tâches
+        function changeTachesSort(sortType) {
+            currentTacheSort = sortType;
+            
+            // Mettre à jour l'apparence des boutons
+            document.querySelectorAll('.tache-sort-btn').forEach(btn => {
+                if (btn.dataset.sort === sortType) {
+                    btn.classList.add('bg-green-100', 'border-green-500', 'font-semibold');
+                    btn.classList.remove('border-gray-300');
+                } else {
+                    btn.classList.remove('bg-green-100', 'border-green-500', 'font-semibold');
+                    btn.classList.add('border-gray-300');
+                }
+            });
+            
+            // Réappliquer les filtres avec le nouveau tri
+            filterTaches();
+        }
+
         // Fonction de tri des tâches
         function sortTaches(tachesToSort) {
-            const sortBy = document.getElementById('tacheSortBy').value;
+            const sortBy = currentTacheSort;
             const sorted = [...tachesToSort];
             
             const prioriteOrder = { 'urgente': 4, 'haute': 3, 'normale': 2, 'basse': 1 };
