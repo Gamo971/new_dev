@@ -1,35 +1,35 @@
 {
-  "name": "cabinet-jarry/php-cursor-starter",
-  "description": "Starter PHP (vanilla) pour Cursor: scripts canoniques, tests Pest, lint PSR-12, typecheck PHPStan.",
-  "type": "project",
-  "require": {
-    "vlucas/phpdotenv": "^5.6"
-  },
-  "require-dev": {
-    "pestphp/pest": "^2.0",
-    "squizlabs/php_codesniffer": "^3.10",
-    "phpstan/phpstan": "^1.11"
-  },
-  "autoload": {
-    "psr-4": {
-      "App\\": "src/"
+    "name": "cabinet-jarry/php-cursor-starter",
+    "description": "Gestionnaire de missions, tâches, clients et contacts avec SQLite",
+    "type": "project",
+    "require": {
+        "vlucas/phpdotenv": "^5.6"
+    },
+    "require-dev": {
+        "pestphp/pest": "^2.0",
+        "squizlabs/php_codesniffer": "^3.10",
+        "phpstan/phpstan": "^1.11"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "start": "php -S localhost:8000 -t public",
+        "test": "vendor/bin/pest --colors=always",
+        "lint": "vendor/bin/phpcs --standard=PSR12 src public",
+        "format": "vendor/bin/phpcbf --standard=PSR12 src public",
+        "typecheck": "vendor/bin/phpstan analyse src --no-progress --level=5"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Tests\\": "tests/"
-    }
-  },
-  "scripts": {
-    "start": "php -S localhost:8000 -t public",
-    "test": "vendor/bin/pest --colors=always",
-    "lint": "vendor/bin/phpcs --standard=PSR12 src public",
-    "format": "vendor/bin/phpcbf --standard=PSR12 src public",
-    "typecheck": "vendor/bin/phpstan analyse src --no-progress --level=5"
-  },
-  "config": {
-    "allow-plugins": {
-      "pestphp/pest-plugin": true
-    }
-  }
 }
