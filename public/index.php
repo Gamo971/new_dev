@@ -150,25 +150,62 @@ header('Content-Type: text/html; charset=utf-8');
                     </div>
                     
                     <!-- Filtres et recherche -->
-                    <div class="mb-6 flex flex-wrap gap-4">
-                        <div class="flex-1 min-w-64">
+                    <div class="mb-6">
+                        <!-- Barre de recherche -->
+                        <div class="mb-4">
                             <input type="text" id="tacheSearch" placeholder="Rechercher une tâche..." 
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                         </div>
-                        <select id="tacheStatutFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
-                            <option value="">Tous les statuts</option>
-                            <option value="a_faire">À faire</option>
-                            <option value="en_cours">En cours</option>
-                            <option value="terminee">Terminée</option>
-                            <option value="annulee">Annulée</option>
-                        </select>
-                        <select id="tachePrioriteFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
-                            <option value="">Toutes les priorités</option>
-                            <option value="basse">Basse</option>
-                            <option value="normale">Normale</option>
-                            <option value="haute">Haute</option>
-                            <option value="urgente">Urgente</option>
-                        </select>
+                        
+                        <!-- Filtres par statut -->
+                        <div class="mb-4">
+                            <label class="text-sm font-semibold text-gray-700 mb-2 block">
+                                <i class="fas fa-filter mr-2"></i>Statut:
+                            </label>
+                            <div class="flex flex-wrap gap-2">
+                                <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <input type="checkbox" class="tache-statut-filter mr-2" value="a_faire" checked>
+                                    <span class="text-sm">📝 À faire</span>
+                                </label>
+                                <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <input type="checkbox" class="tache-statut-filter mr-2" value="en_cours" checked>
+                                    <span class="text-sm">⚙️ En cours</span>
+                                </label>
+                                <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <input type="checkbox" class="tache-statut-filter mr-2" value="terminee">
+                                    <span class="text-sm">✅ Terminée</span>
+                                </label>
+                                <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <input type="checkbox" class="tache-statut-filter mr-2" value="annulee">
+                                    <span class="text-sm">❌ Annulée</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Filtres par priorité -->
+                        <div>
+                            <label class="text-sm font-semibold text-gray-700 mb-2 block">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>Priorité:
+                            </label>
+                            <div class="flex flex-wrap gap-2">
+                                <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <input type="checkbox" class="tache-priorite-filter mr-2" value="basse" checked>
+                                    <span class="text-sm">🟢 Basse</span>
+                                </label>
+                                <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <input type="checkbox" class="tache-priorite-filter mr-2" value="normale" checked>
+                                    <span class="text-sm">🟡 Normale</span>
+                                </label>
+                                <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <input type="checkbox" class="tache-priorite-filter mr-2" value="haute" checked>
+                                    <span class="text-sm">🟠 Haute</span>
+                                </label>
+                                <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <input type="checkbox" class="tache-priorite-filter mr-2" value="urgente" checked>
+                                    <span class="text-sm">🔴 Urgente</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Options de tri -->
@@ -1076,9 +1113,17 @@ header('Content-Type: text/html; charset=utf-8');
             
             // Recherche des tâches
             document.getElementById('tacheSearch').addEventListener('input', filterTaches);
-            document.getElementById('tacheStatutFilter').addEventListener('change', filterTaches);
-            document.getElementById('tachePrioriteFilter').addEventListener('change', filterTaches);
             document.getElementById('tacheSortBy').addEventListener('change', filterTaches);
+            
+            // Filtres de statut des tâches (checkboxes)
+            document.querySelectorAll('.tache-statut-filter').forEach(checkbox => {
+                checkbox.addEventListener('change', filterTaches);
+            });
+            
+            // Filtres de priorité des tâches (checkboxes)
+            document.querySelectorAll('.tache-priorite-filter').forEach(checkbox => {
+                checkbox.addEventListener('change', filterTaches);
+            });
             
             // Recherche des clients
             document.getElementById('clientSearch').addEventListener('input', filterClients);
@@ -1113,8 +1158,14 @@ header('Content-Type: text/html; charset=utf-8');
         // Filtrage des tâches
         function filterTaches() {
             const search = document.getElementById('tacheSearch').value.toLowerCase();
-            const statutFilter = document.getElementById('tacheStatutFilter').value;
-            const prioriteFilter = document.getElementById('tachePrioriteFilter').value;
+            
+            // Récupérer les statuts cochés
+            const selectedStatuts = Array.from(document.querySelectorAll('.tache-statut-filter:checked'))
+                .map(cb => cb.value);
+            
+            // Récupérer les priorités cochées
+            const selectedPriorites = Array.from(document.querySelectorAll('.tache-priorite-filter:checked'))
+                .map(cb => cb.value);
             
             let filtered = taches.filter(tache => {
                 const matchesSearch = !search || 
@@ -1122,8 +1173,11 @@ header('Content-Type: text/html; charset=utf-8');
                     (tache.description && tache.description.toLowerCase().includes(search)) ||
                     (tache.mission_nom && tache.mission_nom.toLowerCase().includes(search));
                 
-                const matchesStatut = !statutFilter || tache.statut === statutFilter;
-                const matchesPriorite = !prioriteFilter || tache.priorite === prioriteFilter;
+                // Si aucun statut n'est coché, on affiche tout
+                const matchesStatut = selectedStatuts.length === 0 || selectedStatuts.includes(tache.statut);
+                
+                // Si aucune priorité n'est cochée, on affiche tout
+                const matchesPriorite = selectedPriorites.length === 0 || selectedPriorites.includes(tache.priorite);
                 
                 return matchesSearch && matchesStatut && matchesPriorite;
             });
