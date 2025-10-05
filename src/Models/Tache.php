@@ -13,6 +13,7 @@ class Tache
     private string $statut;
     private string $priorite;
     private ?\DateTime $dateEcheance;
+    private ?\DateTime $datePlanifiee;
     private ?\DateTime $dateFinReelle;
     private int $tempsEstime;
     private int $tempsReel;
@@ -29,6 +30,7 @@ class Tache
         string $statut = 'a_faire',
         string $priorite = 'normale',
         ?\DateTime $dateEcheance = null,
+        ?\DateTime $datePlanifiee = null,
         ?\DateTime $dateFinReelle = null,
         int $tempsEstime = 0,
         int $tempsReel = 0,
@@ -46,6 +48,7 @@ class Tache
         $this->statut = $statut;
         $this->priorite = $priorite;
         $this->dateEcheance = $dateEcheance;
+        $this->datePlanifiee = $datePlanifiee;
         $this->dateFinReelle = $dateFinReelle;
         $this->tempsEstime = $tempsEstime;
         $this->tempsReel = $tempsReel;
@@ -90,6 +93,11 @@ class Tache
     public function getDateEcheance(): ?\DateTime
     {
         return $this->dateEcheance;
+    }
+
+    public function getDatePlanifiee(): ?\DateTime
+    {
+        return $this->datePlanifiee;
     }
 
     public function getDateFinReelle(): ?\DateTime
@@ -171,6 +179,12 @@ class Tache
     public function setDateEcheance(?\DateTime $dateEcheance): void
     {
         $this->dateEcheance = $dateEcheance;
+        $this->updatedAt = new \DateTime();
+    }
+
+    public function setDatePlanifiee(?\DateTime $datePlanifiee): void
+    {
+        $this->datePlanifiee = $datePlanifiee;
         $this->updatedAt = new \DateTime();
     }
 
@@ -292,6 +306,51 @@ class Tache
         return $this->statut === 'en_cours';
     }
 
+    public function isPlanifiee(): bool
+    {
+        return $this->datePlanifiee !== null;
+    }
+
+    public function isEnRetardPlanification(): bool
+    {
+        if (!$this->datePlanifiee || $this->statut === 'terminee') {
+            return false;
+        }
+        return new \DateTime() > $this->datePlanifiee && $this->statut !== 'terminee';
+    }
+
+    public function getMargeAvantEcheance(): ?int
+    {
+        if (!$this->dateEcheance || !$this->datePlanifiee) {
+            return null;
+        }
+        $diff = $this->dateEcheance->diff($this->datePlanifiee);
+        return (int) $diff->format('%r%a'); // Nombre de jours (négatif si planifiée après échéance)
+    }
+
+    public function getStatutPlanification(): string
+    {
+        if (!$this->datePlanifiee) {
+            return 'non_planifiee';
+        }
+        
+        if ($this->isTerminee()) {
+            return 'terminee';
+        }
+        
+        $now = new \DateTime();
+        $today = new \DateTime($now->format('Y-m-d'));
+        $planDate = new \DateTime($this->datePlanifiee->format('Y-m-d'));
+        
+        if ($planDate < $today) {
+            return 'en_retard';
+        } elseif ($planDate == $today) {
+            return 'aujourdhui';
+        } else {
+            return 'a_venir';
+        }
+    }
+
     public function toArray(): array
     {
         return [
@@ -305,6 +364,7 @@ class Tache
             'priorite_libelle' => $this->getPrioriteLibelle(),
             'priorite_couleur' => $this->getPrioriteCouleur(),
             'date_echeance' => $this->dateEcheance?->format('Y-m-d'),
+            'date_planifiee' => $this->datePlanifiee?->format('Y-m-d'),
             'date_fin_reelle' => $this->dateFinReelle?->format('Y-m-d H:i:s'),
             'temps_estime' => $this->tempsEstime,
             'temps_reel' => $this->tempsReel,
@@ -314,8 +374,12 @@ class Tache
             'assigne_a' => $this->assigneA,
             'progression' => round($this->getProgression(), 1),
             'en_retard' => $this->isEnRetard(),
+            'en_retard_planification' => $this->isEnRetardPlanification(),
+            'statut_planification' => $this->getStatutPlanification(),
+            'marge_avant_echeance' => $this->getMargeAvantEcheance(),
             'terminee' => $this->isTerminee(),
             'en_cours' => $this->isEnCours(),
+            'planifiee' => $this->isPlanifiee(),
             'notes' => $this->notes,
             'created_at' => $this->createdAt->format('Y-m-d H:i:s'),
             'updated_at' => $this->updatedAt->format('Y-m-d H:i:s')

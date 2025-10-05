@@ -43,6 +43,8 @@ async function openTacheModal(id = null) {
         title.textContent = 'Nouvelle Tâche';
         form.reset();
         document.getElementById('tacheId').value = '';
+        // Masquer l'info de marge pour une nouvelle tâche
+        document.getElementById('margeInfo').classList.add('hidden');
     }
     
     modal.classList.remove('hidden');
@@ -163,10 +165,16 @@ async function loadTacheData(id) {
             document.getElementById('tacheStatut').value = tache.statut;
             document.getElementById('tachePriorite').value = tache.priorite;
             document.getElementById('tacheDateEcheance').value = tache.date_echeance || '';
+            document.getElementById('tacheDatePlanifiee').value = tache.date_planifiee || '';
             document.getElementById('tacheAssigne').value = tache.assigne_a || '';
             document.getElementById('tacheTempsEstime').value = tache.temps_estime || '';
             document.getElementById('tacheOrdre').value = tache.ordre || '';
             document.getElementById('tacheNotes').value = tache.notes || '';
+            
+            // Mettre à jour l'affichage de la marge
+            if (typeof updateMargeInfo === 'function') {
+                updateMargeInfo();
+            }
         }
     } catch (error) {
         console.error('Erreur lors du chargement de la tâche:', error);

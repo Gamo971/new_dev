@@ -400,11 +400,20 @@ header('Content-Type: text/html; charset=utf-8');
                         <h2 class="text-2xl font-bold text-gray-800">
                             <i class="fas fa-calendar-alt text-purple-600 mr-2"></i>Planning des Tâches
                         </h2>
-                        <button onclick="showSchedulingModal()" 
-                                class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2">
-                            <i class="fas fa-wand-magic-sparkles"></i>
-                            Ordonnancement auto
-                        </button>
+                        <div class="flex gap-2">
+                            <button onclick="rescheduleLateTasks()" 
+                                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                    title="Re-planifie automatiquement les tâches dont la date de planification est dépassée">
+                                <i class="fas fa-rotate"></i>
+                                Re-planifier les retards
+                            </button>
+                            <button onclick="showSchedulingModal()" 
+                                    class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+                                    title="Affiche l'ordre suggéré pour travailler sur vos tâches selon priorité et échéance">
+                                <i class="fas fa-chart-line"></i>
+                                Voir l'ordre suggéré
+                            </button>
+                        </div>
                     </div>
                     
                     <!-- Barre d'outils des vues -->
@@ -589,24 +598,50 @@ header('Content-Type: text/html; charset=utf-8');
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Date d'échéance</label>
-                                    <input type="date" id="tacheDateEcheance" name="date_echeance" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-flag-checkered text-red-500 mr-1"></i>Date d'échéance (Deadline)
+                                    </label>
+                                    <input type="date" id="tacheDateEcheance" name="date_echeance" onchange="updateMargeInfo()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                    <p class="text-xs text-gray-500 mt-1">Date limite du client</p>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Assigné à</label>
-                                    <input type="text" id="tacheAssigne" name="assigne_a" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-calendar-check text-blue-500 mr-1"></i>Date de planification
+                                    </label>
+                                    <div class="flex gap-2">
+                                        <input type="date" id="tacheDatePlanifiee" name="date_planifiee" onchange="updateMargeInfo()" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                        <button type="button" onclick="autoScheduleTask()" class="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors flex items-center gap-1" title="Planifier automatiquement">
+                                            <i class="fas fa-magic"></i>
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Quand vous prévoyez de travailler dessus</p>
                                 </div>
                             </div>
                             
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <!-- Info marge de sécurité -->
+                            <div id="margeInfo" class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg hidden">
+                                <div class="flex items-start gap-2">
+                                    <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                                    <div class="flex-1">
+                                        <p id="margeText" class="text-sm text-gray-700"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Temps estimé (minutes)</label>
-                                    <input type="number" id="tacheTempsEstime" name="temps_estime" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Assigné à</label>
+                                    <input type="text" id="tacheAssigne" name="assigne_a" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Ordre</label>
                                     <input type="number" id="tacheOrdre" name="ordre" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                 </div>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Temps estimé (minutes)</label>
+                                <input type="number" id="tacheTempsEstime" name="temps_estime" onchange="updateMargeInfo()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                             </div>
                             
                             <div class="mb-6">
@@ -795,6 +830,7 @@ header('Content-Type: text/html; charset=utf-8');
     <script src="/js/utils.js"></script>
     <script src="/js/components.js"></script>
     <script src="/js/api.js"></script>
+    <script src="/js/task-scheduler.js"></script>
     <script src="/js/ui.js"></script>
     <script src="/js/filters.js"></script>
     <script src="/js/modals.js"></script>

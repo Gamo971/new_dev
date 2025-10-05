@@ -36,19 +36,43 @@ function initFullCalendar() {
     }
     
     // Mapper les tâches vers les événements
-    const events = taches
-        .filter(t => t.date_echeance) // Seulement les tâches avec échéance
-        .map(t => ({
-            id: t.id,
-            title: t.nom,
-            start: t.date_echeance,
-            allDay: true,
-            backgroundColor: getPriorityColor(t.priorite),
-            borderColor: getPriorityColor(t.priorite),
-            extendedProps: {
-                tache: t
-            }
-        }));
+    const events = [];
+    
+    taches.forEach(t => {
+        // Afficher la tâche sur sa date de planification si elle existe
+        if (t.date_planifiee && t.statut !== 'terminee') {
+            events.push({
+                id: t.id,
+                title: `📅 ${t.nom}`,
+                start: t.date_planifiee,
+                allDay: true,
+                backgroundColor: getPlanificationColor(t),
+                borderColor: getPriorityColor(t.priorite),
+                borderWidth: 2,
+                extendedProps: {
+                    tache: t,
+                    type: 'planifiee'
+                }
+            });
+        }
+        
+        // Afficher aussi l'échéance si elle existe (en grisé si déjà planifiée)
+        if (t.date_echeance && t.statut !== 'terminee') {
+            events.push({
+                id: `echeance-${t.id}`,
+                title: `🏁 ${t.nom} (échéance)`,
+                start: t.date_echeance,
+                allDay: true,
+                backgroundColor: t.date_planifiee ? '#cbd5e1' : getPriorityColor(t.priorite),
+                borderColor: getPriorityColor(t.priorite),
+                display: t.date_planifiee ? 'background' : 'auto',
+                extendedProps: {
+                    tache: t,
+                    type: 'echeance'
+                }
+            });
+        }
+    });
     
     // Créer le calendrier
     calendarInstance = new FullCalendar.Calendar(calendarEl, {
@@ -69,14 +93,23 @@ function initFullCalendar() {
         events: events,
         eventClick: function(info) {
             info.jsEvent.preventDefault();
-            const tacheId = info.event.id;
+            const tacheId = info.event.id.toString().replace('echeance-', '');
             openTacheModal(parseInt(tacheId));
         },
         editable: true,
         eventDrop: function(info) {
             // Quand une tâche est déplacée
-            const tacheId = parseInt(info.event.id);
+            const tacheId = parseInt(info.event.id.toString().replace('echeance-', ''));
             const newDate = info.event.start.toISOString().split('T')[0];
+            const eventType = info.event.extendedProps.type;
+            
+            // Ne permettre le déplacement que pour les événements planifiés
+            if (eventType === 'echeance') {
+                info.revert(); // Annuler le déplacement
+                showNotification('Vous ne pouvez déplacer que la date de planification. Modifiez l\'échéance via le formulaire.', 'warning');
+                return;
+            }
+            
             updateTacheDate(tacheId, newDate);
         },
         dateClick: function(info) {
@@ -104,7 +137,24 @@ function getPriorityColor(priorite) {
 }
 
 /**
- * Met à jour la date d'échéance d'une tâche
+ * Retourne la couleur de planification selon le statut
+ * @param {Object} tache - La tâche
+ * @returns {string} Couleur hex
+ */
+function getPlanificationColor(tache) {
+    const statut = tache.statut_planification;
+    
+    if (statut === 'en_retard') {
+        return '#dc2626'; // red-600 - en retard
+    } else if (statut === 'aujourdhui') {
+        return '#2563eb'; // blue-600 - aujourd'hui
+    } else {
+        return getPriorityColor(tache.priorite); // couleur selon priorité pour à venir
+    }
+}
+
+/**
+ * Met à jour la date de planification d'une tâche
  * @param {number} tacheId - ID de la tâche
  * @param {string} newDate - Nouvelle date (YYYY-MM-DD)
  */
@@ -115,7 +165,7 @@ async function updateTacheDate(tacheId, newDate) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ date_echeance: newDate })
+            body: JSON.stringify({ date_planifiee: newDate })
         });
         
         const result = await response.json();
@@ -124,7 +174,7 @@ async function updateTacheDate(tacheId, newDate) {
             // Mettre à jour localement
             const tache = taches.find(t => t.id === tacheId);
             if (tache) {
-                tache.date_echeance = newDate;
+                tache.date_planifiee = newDate;
             }
             
             showNotification('Date mise à jour', 'success');

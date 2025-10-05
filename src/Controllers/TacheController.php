@@ -57,6 +57,12 @@ class TacheController extends ApiController
                 return;
             }
             
+            // Validation de la date de planification si fournie
+            if (isset($data['date_planifiee']) && !$this->validateDate($data['date_planifiee'])) {
+                $this->sendError('Format de date de planification invalide (Y-m-d)');
+                return;
+            }
+            
             // Création de la tâche
             $tache = new Tache(
                 missionId: (int) $data['mission_id'],
@@ -65,6 +71,7 @@ class TacheController extends ApiController
                 statut: $this->sanitizeString($data['statut'] ?? 'a_faire'),
                 priorite: $this->sanitizeString($data['priorite'] ?? 'normale'),
                 dateEcheance: isset($data['date_echeance']) ? new \DateTime($data['date_echeance']) : null,
+                datePlanifiee: isset($data['date_planifiee']) ? new \DateTime($data['date_planifiee']) : null,
                 tempsEstime: $this->sanitizeInt($data['temps_estime'] ?? 0) ?? 0,
                 ordre: $this->sanitizeInt($data['ordre'] ?? 0) ?? 0,
                 assigneA: $this->sanitizeString($data['assigne_a'] ?? null),
@@ -97,6 +104,12 @@ class TacheController extends ApiController
                 return;
             }
             
+            // Validation de la date de planification si fournie
+            if (isset($data['date_planifiee']) && !$this->validateDate($data['date_planifiee'])) {
+                $this->sendError('Format de date de planification invalide (Y-m-d)');
+                return;
+            }
+            
             // Mise à jour des champs
             if (isset($data['mission_id'])) {
                 $tache->setMissionId((int) $data['mission_id']);
@@ -115,6 +128,9 @@ class TacheController extends ApiController
             }
             if (isset($data['date_echeance'])) {
                 $tache->setDateEcheance(new \DateTime($data['date_echeance']));
+            }
+            if (isset($data['date_planifiee'])) {
+                $tache->setDatePlanifiee(!empty($data['date_planifiee']) ? new \DateTime($data['date_planifiee']) : null);
             }
             if (isset($data['temps_estime'])) {
                 $tache->setTempsEstime($this->sanitizeInt($data['temps_estime']) ?? 0);

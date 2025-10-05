@@ -111,6 +111,7 @@ class Database
                 statut TEXT DEFAULT 'a_faire' CHECK (statut IN ('a_faire', 'en_cours', 'terminee', 'annulee')),
                 priorite TEXT DEFAULT 'normale' CHECK (priorite IN ('basse', 'normale', 'haute', 'urgente')),
                 date_echeance DATE,
+                date_planifiee DATE,
                 date_fin_reelle DATETIME,
                 temps_estime INTEGER DEFAULT 0,
                 temps_reel INTEGER DEFAULT 0,
@@ -130,6 +131,7 @@ class Database
             CREATE INDEX IF NOT EXISTS idx_taches_mission_id ON taches(mission_id);
             CREATE INDEX IF NOT EXISTS idx_taches_statut ON taches(statut);
             CREATE INDEX IF NOT EXISTS idx_taches_date_echeance ON taches(date_echeance);
+            CREATE INDEX IF NOT EXISTS idx_taches_date_planifiee ON taches(date_planifiee);
         ";
         
         $this->pdo->exec($sql);
