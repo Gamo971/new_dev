@@ -195,9 +195,9 @@ class TacheController extends ApiController
     {
         try {
             $taches = $this->tacheRepository->findByMissionId($missionId);
-            $data = array_map(fn(Tache $tache) => $tache->toArray(), $taches);
+            // Les tâches sont déjà retournées en tant qu'arrays par enrichTacheData
             
-            $this->sendSuccess($data, 'Tâches de la mission récupérées avec succès');
+            $this->sendSuccess($taches, 'Tâches de la mission récupérées avec succès');
         } catch (\Exception $e) {
             $this->sendError('Erreur lors de la récupération des tâches: ' . $e->getMessage(), 500);
         }
@@ -207,9 +207,9 @@ class TacheController extends ApiController
     {
         try {
             $taches = $this->tacheRepository->findByStatut($statut);
-            $data = array_map(fn(Tache $tache) => $tache->toArray(), $taches);
+            // Les tâches sont déjà retournées en tant qu'arrays par enrichTacheData
             
-            $this->sendSuccess($data, 'Tâches récupérées avec succès');
+            $this->sendSuccess($taches, 'Tâches récupérées avec succès');
         } catch (\Exception $e) {
             $this->sendError('Erreur lors de la récupération des tâches: ' . $e->getMessage(), 500);
         }
@@ -226,9 +226,9 @@ class TacheController extends ApiController
             }
             
             $taches = $this->tacheRepository->search($query);
-            $data = array_map(fn(Tache $tache) => $tache->toArray(), $taches);
+            // Les tâches sont déjà retournées en tant qu'arrays par enrichTacheData
             
-            $this->sendSuccess($data, 'Recherche effectuée avec succès');
+            $this->sendSuccess($taches, 'Recherche effectuée avec succès');
         } catch (\Exception $e) {
             $this->sendError('Erreur lors de la recherche: ' . $e->getMessage(), 500);
         }
@@ -238,9 +238,9 @@ class TacheController extends ApiController
     {
         try {
             $taches = $this->tacheRepository->findEnRetard();
-            $data = array_map(fn(Tache $tache) => $tache->toArray(), $taches);
+            // Les tâches sont déjà retournées en tant qu'arrays par enrichTacheData
             
-            $this->sendSuccess($data, 'Tâches en retard récupérées avec succès');
+            $this->sendSuccess($taches, 'Tâches en retard récupérées avec succès');
         } catch (\Exception $e) {
             $this->sendError('Erreur lors de la récupération des tâches en retard: ' . $e->getMessage(), 500);
         }
@@ -250,9 +250,9 @@ class TacheController extends ApiController
     {
         try {
             $taches = $this->tacheRepository->findByAssigne($assigneA);
-            $data = array_map(fn(Tache $tache) => $tache->toArray(), $taches);
+            // Les tâches sont déjà retournées en tant qu'arrays par enrichTacheData
             
-            $this->sendSuccess($data, 'Tâches de l\'assigné récupérées avec succès');
+            $this->sendSuccess($taches, 'Tâches de l\'assigné récupérées avec succès');
         } catch (\Exception $e) {
             $this->sendError('Erreur lors de la récupération des tâches: ' . $e->getMessage(), 500);
         }
