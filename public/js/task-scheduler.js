@@ -168,6 +168,10 @@ function calculateSmartScheduling(tache) {
 
 /**
  * Re-planifie automatiquement les tâches en retard
+ * Gère 3 cas :
+ * 1. Tâches non planifiées (sans date_planifiee)
+ * 2. Tâches dont la date de planification est dépassée
+ * 3. Tâches dont l'échéance est dépassée et non terminées
  */
 async function rescheduleLateTasks() {
     try {
@@ -182,21 +186,47 @@ async function rescheduleLateTasks() {
         const taches = result.data;
         const aujourdhui = new Date().toISOString().split('T')[0];
         
-        // Trouver les tâches en retard de planification
-        const tachesEnRetard = taches.filter(t => {
-            return t.date_planifiee && 
-                   t.date_planifiee < aujourdhui && 
-                   t.statut !== 'terminee' && 
-                   t.statut !== 'annulee';
+        // Trouver les tâches à re-planifier
+        const tachesAReplanifier = taches.filter(t => {
+            // Exclure les tâches terminées ou annulées
+            if (t.statut === 'terminee' || t.statut === 'annulee') {
+                return false;
+            }
+            
+            // CAS 1 : Tâche non planifiée (avec échéance pour pouvoir calculer)
+            if (!t.date_planifiee && t.date_echeance) {
+                return true;
+            }
+            
+            // CAS 2 : Date de planification dépassée
+            if (t.date_planifiee && t.date_planifiee < aujourdhui) {
+                return true;
+            }
+            
+            // CAS 3 : Échéance dépassée et non terminée
+            if (t.date_echeance && t.date_echeance < aujourdhui) {
+                return true;
+            }
+            
+            return false;
         });
         
-        if (tachesEnRetard.length === 0) {
-            showNotification('Aucune tâche en retard de planification', 'info');
+        if (tachesAReplanifier.length === 0) {
+            showNotification('✅ Toutes les tâches sont à jour !', 'success');
             return;
         }
         
-        // Afficher modal de confirmation
-        const confirmMessage = `${tachesEnRetard.length} tâche(s) en retard de planification détectée(s).\n\nVoulez-vous les re-planifier automatiquement ?`;
+        // Compter par catégorie pour le message
+        const nonPlanifiees = tachesAReplanifier.filter(t => !t.date_planifiee).length;
+        const planifRetard = tachesAReplanifier.filter(t => t.date_planifiee && t.date_planifiee < aujourdhui).length;
+        const echeanceDepassee = tachesAReplanifier.filter(t => t.date_echeance && t.date_echeance < aujourdhui && !t.date_planifiee).length;
+        
+        // Message de confirmation détaillé
+        let confirmMessage = `📋 Tâches à re-planifier : ${tachesAReplanifier.length}\n\n`;
+        if (nonPlanifiees > 0) confirmMessage += `• ${nonPlanifiees} non planifiée(s)\n`;
+        if (planifRetard > 0) confirmMessage += `• ${planifRetard} en retard de planification\n`;
+        if (echeanceDepassee > 0) confirmMessage += `• ${echeanceDepassee} avec échéance dépassée\n`;
+        confirmMessage += `\nVoulez-vous les re-planifier automatiquement ?`;
         
         if (!confirm(confirmMessage)) {
             return;
@@ -204,34 +234,58 @@ async function rescheduleLateTasks() {
         
         // Re-planifier chaque tâche
         let replanifiees = 0;
-        for (const tache of tachesEnRetard) {
+        let erreurs = 0;
+        
+        for (const tache of tachesAReplanifier) {
             const nouvelleDatePlan = calculateSmartScheduling(tache);
             
             if (nouvelleDatePlan) {
-                // Mettre à jour la tâche
-                const updateResponse = await fetch(`/api/taches/${tache.id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        ...tache,
-                        date_planifiee: nouvelleDatePlan
-                    })
-                });
-                
-                if (updateResponse.ok) {
-                    replanifiees++;
+                try {
+                    // Mettre à jour la tâche
+                    const updateResponse = await fetch(`/api/taches/${tache.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ...tache,
+                            date_planifiee: nouvelleDatePlan
+                        })
+                    });
+                    
+                    if (updateResponse.ok) {
+                        replanifiees++;
+                    } else {
+                        erreurs++;
+                        console.error(`Erreur pour tâche ${tache.id}:`, await updateResponse.text());
+                    }
+                } catch (err) {
+                    erreurs++;
+                    console.error(`Erreur pour tâche ${tache.id}:`, err);
                 }
             }
         }
         
-        showNotification(`✅ ${replanifiees} tâche(s) re-planifiée(s) avec succès !`, 'success');
+        // Message de résultat
+        let message = `✅ ${replanifiees} tâche(s) re-planifiée(s) avec succès !`;
+        if (erreurs > 0) {
+            message += ` (${erreurs} erreur(s))`;
+        }
+        
+        showNotification(message, replanifiees > 0 ? 'success' : 'warning');
         
         // Recharger les données
         await loadAllData();
         
+        // Si on est sur l'onglet Planning, rafraîchir la vue
+        if (document.getElementById('planning')?.classList.contains('active')) {
+            const activeView = document.querySelector('.view-btn.active')?.dataset.view;
+            if (activeView) {
+                showPlanningView(activeView);
+            }
+        }
+        
     } catch (error) {
         console.error('Erreur re-planification:', error);
-        showNotification('Erreur lors de la re-planification : ' + error.message, 'error');
+        showNotification('❌ Erreur lors de la re-planification : ' + error.message, 'error');
     }
 }
 
@@ -287,4 +341,5 @@ function getMargeInfo(tache) {
         return `<span class="text-green-600 text-xs">✓ ${marge}j avant</span>`;
     }
 }
+
 

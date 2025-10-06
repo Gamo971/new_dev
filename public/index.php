@@ -47,7 +47,7 @@ header('Content-Type: text/html; charset=utf-8');
     <title>Gestionnaire de Missions - Cabinet Jarry</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css?v=2">
     
     <!-- Bibliothèques pour le Planning -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -401,12 +401,12 @@ header('Content-Type: text/html; charset=utf-8');
                             <i class="fas fa-calendar-alt text-purple-600 mr-2"></i>Planning des Tâches
                         </h2>
                         <div class="flex gap-2">
-                            <button onclick="rescheduleLateTasks()" 
-                                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                                    title="Re-planifie automatiquement les tâches dont la date de planification est dépassée">
-                                <i class="fas fa-rotate"></i>
-                                Re-planifier les retards
-                            </button>
+                        <button onclick="rescheduleLateTasks()" 
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                title="Re-planifie automatiquement : • les tâches non planifiées • les tâches avec planification dépassée • les tâches avec échéance dépassée">
+                            <i class="fas fa-rotate"></i>
+                            Re-planifier les retards
+                        </button>
                             <button onclick="showSchedulingModal()" 
                                     class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
                                     title="Affiche l'ordre suggéré pour travailler sur vos tâches selon priorité et échéance">
@@ -827,18 +827,18 @@ header('Content-Type: text/html; charset=utf-8');
     </div>
 
     <!-- Scripts JavaScript modulaires -->
-    <script src="/js/utils.js"></script>
-    <script src="/js/components.js"></script>
-    <script src="/js/api.js"></script>
-    <script src="/js/task-scheduler.js"></script>
-    <script src="/js/ui.js"></script>
-    <script src="/js/filters.js"></script>
-    <script src="/js/modals.js"></script>
+    <script src="/js/utils.js?v=2"></script>
+    <script src="/js/components.js?v=2"></script>
+    <script src="/js/api.js?v=2"></script>
+    <script src="/js/task-scheduler.js?v=2"></script>
+    <script src="/js/ui.js?v=2"></script>
+    <script src="/js/filters.js?v=2"></script>
+    <script src="/js/modals.js?v=2"></script>
     <!-- Planning -->
-    <script src="/js/planning/scheduling.js"></script>
-    <script src="/js/planning/kanban.js"></script>
-    <script src="/js/planning/agenda.js"></script>
-    <script src="/js/planning.js"></script>
-    <script src="/js/app.js"></script>
+    <script src="/js/planning/scheduling.js?v=2"></script>
+    <script src="/js/planning/kanban.js?v=2"></script>
+    <script src="/js/planning/agenda.js?v=2"></script>
+    <script src="/js/planning.js?v=2"></script>
+    <script src="/js/app.js?v=2"></script>
 </body>
 </html>
