@@ -291,6 +291,7 @@ async function toggleMissionTaches(missionId, event) {
     
     // Charger les tâches de la mission
     const taches = await loadMissionTaches(missionId);
+    console.log(`Tâches chargées pour la mission ${missionId}:`, taches);
     
     // Afficher les tâches
     if (taches.length === 0) {
@@ -305,6 +306,50 @@ async function toggleMissionTaches(missionId, event) {
             </div>
         `;
     } else {
+        // Construire le HTML des tâches
+        const tachesHTML = taches.map(tache => {
+            // Construire les badges
+            const badgePriorite = Badge(tache.priorite_libelle || 'Inconnue', tache.priorite_couleur || 'bg-gray-100 text-gray-800');
+            const badgeStatut = Badge(tache.statut_libelle || 'Inconnu', 'bg-gray-100 text-gray-800');
+            
+            // Construire les boutons d'action
+            const btnEdit = ActionButton('fa-edit', `openTacheModal(${tache.id})`, 'Modifier', 'text-blue-600 hover:text-blue-800 text-xs');
+            const btnDelete = ActionButton('fa-trash', `deleteTache(${tache.id})`, 'Supprimer', 'text-red-600 hover:text-red-800 text-xs');
+            
+            // Construire les informations
+            const infoEcheance = tache.date_echeance ? 
+                `<div><i class="fas fa-flag-checkered mr-1 text-red-500"></i>Échéance: ${formatDate(tache.date_echeance)}</div>` : '';
+            const infoPlanifiee = tache.date_planifiee ? 
+                `<div><i class="fas fa-calendar-check mr-1 text-blue-500"></i>Planifiée: ${formatDate(tache.date_planifiee)}</div>` : '';
+            const infoTemps = tache.temps_estime ? 
+                `<div><i class="fas fa-clock mr-1"></i>Temps: ${tache.temps_estime_formate || tache.temps_estime + 'min'}</div>` : '';
+            const infoAssigne = tache.assigne_a ? 
+                `<div><i class="fas fa-user mr-1"></i>${tache.assigne_a}</div>` : '';
+            
+            return `
+                <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start mb-2">
+                        <h5 class="font-semibold text-gray-800 text-sm">${tache.nom || 'Sans nom'}</h5>
+                        <div class="flex gap-1">
+                            ${btnEdit}
+                            ${btnDelete}
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        ${badgePriorite}
+                        ${badgeStatut}
+                    </div>
+                    ${tache.description ? `<p class="text-xs text-gray-600 mb-2">${tache.description}</p>` : ''}
+                    <div class="text-xs text-gray-500 space-y-1">
+                        ${infoEcheance}
+                        ${infoPlanifiee}
+                        ${infoTemps}
+                        ${infoAssigne}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
         container.innerHTML = `
             <div class="mb-4 flex justify-between items-center">
                 <h4 class="font-semibold text-gray-800 flex items-center gap-2">
@@ -317,28 +362,7 @@ async function toggleMissionTaches(missionId, event) {
                 </button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                ${taches.map(tache => `
-                    <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div class="flex justify-between items-start mb-2">
-                            <h5 class="font-semibold text-gray-800 text-sm">${tache.nom}</h5>
-                            <div class="flex gap-1">
-                                ${ActionButton('fa-edit', `openTacheModal(${tache.id})`, 'Modifier', 'text-blue-600 hover:text-blue-800 text-xs')}
-                                ${ActionButton('fa-trash', `deleteTache(${tache.id})`, 'Supprimer', 'text-red-600 hover:text-red-800 text-xs')}
-                            </div>
-                        </div>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            ${Badge(tache.priorite_libelle, tache.priorite_couleur)}
-                            ${Badge(tache.statut_libelle, 'bg-gray-100 text-gray-800')}
-                        </div>
-                        ${tache.description ? `<p class="text-xs text-gray-600 mb-2">${tache.description}</p>` : ''}
-                        <div class="text-xs text-gray-500 space-y-1">
-                            ${tache.date_echeance ? `<div><i class="fas fa-flag-checkered mr-1 text-red-500"></i>Échéance: ${formatDate(tache.date_echeance)}</div>` : ''}
-                            ${tache.date_planifiee ? `<div><i class="fas fa-calendar-check mr-1 text-blue-500"></i>Planifiée: ${formatDate(tache.date_planifiee)}</div>` : ''}
-                            ${tache.temps_estime ? `<div><i class="fas fa-clock mr-1"></i>Temps: ${tache.temps_estime_formate}</div>` : ''}
-                            ${tache.assigne_a ? `<div><i class="fas fa-user mr-1"></i>${tache.assigne_a}</div>` : ''}
-                        </div>
-                    </div>
-                `).join('')}
+                ${tachesHTML}
             </div>
         `;
     }
