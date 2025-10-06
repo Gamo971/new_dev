@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Repositories\TacheRepository;
+use App\Repositories\MissionRepository;
 use App\Models\Tache;
 
 class TacheController extends ApiController
 {
     private TacheRepository $tacheRepository;
+    private MissionRepository $missionRepository;
 
-    public function __construct(TacheRepository $tacheRepository)
+    public function __construct(TacheRepository $tacheRepository, MissionRepository $missionRepository)
     {
         $this->tacheRepository = $tacheRepository;
+        $this->missionRepository = $missionRepository;
     }
 
     public function index(): void
@@ -79,6 +82,9 @@ class TacheController extends ApiController
             );
             
             $savedTache = $this->tacheRepository->save($tache);
+            
+            // Mettre à jour le temps estimé de la mission
+            $this->missionRepository->updateTempsEstimeFromTaches($savedTache->getMissionId());
             
             $this->sendSuccess($savedTache->toArray(), 'Tâche créée avec succès', 201);
         } catch (\Exception $e) {
@@ -150,6 +156,9 @@ class TacheController extends ApiController
             
             $updatedTache = $this->tacheRepository->save($tache);
             
+            // Mettre à jour le temps estimé de la mission
+            $this->missionRepository->updateTempsEstimeFromTaches($updatedTache->getMissionId());
+            
             $this->sendSuccess($updatedTache->toArray(), 'Tâche mise à jour avec succès');
         } catch (\Exception $e) {
             $this->sendError('Erreur lors de la mise à jour de la tâche: ' . $e->getMessage(), 500);
@@ -166,9 +175,13 @@ class TacheController extends ApiController
                 return;
             }
             
+            $missionId = $tache->getMissionId();
             $success = $this->tacheRepository->delete($id);
             
             if ($success) {
+                // Mettre à jour le temps estimé de la mission après suppression
+                $this->missionRepository->updateTempsEstimeFromTaches($missionId);
+                
                 $this->sendSuccess([], 'Tâche supprimée avec succès');
             } else {
                 $this->sendError('Erreur lors de la suppression de la tâche');

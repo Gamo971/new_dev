@@ -115,26 +115,102 @@ header('Content-Type: text/html; charset=utf-8');
                     </div>
                     
                     <!-- Filtres et recherche -->
-                    <div class="mb-6 flex flex-wrap gap-4">
-                        <div class="flex-1 min-w-64">
-                            <input type="text" id="missionSearch" placeholder="Rechercher une mission..." 
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <div class="mb-6">
+                        <!-- Barre de recherche et tri -->
+                        <div class="flex flex-wrap gap-4 mb-4">
+                            <div class="flex-1 min-w-64">
+                                <input type="text" id="missionSearch" placeholder="Rechercher une mission..." 
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <select id="missionSortBy" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="date_creation_desc">📅 Plus récent</option>
+                                <option value="date_creation_asc">📅 Plus ancien</option>
+                                <option value="priorite_desc">🔴 Priorité (haute → basse)</option>
+                                <option value="priorite_asc">🟢 Priorité (basse → haute)</option>
+                                <option value="date_debut_asc">📆 Date début (proche → lointaine)</option>
+                                <option value="date_debut_desc">📆 Date début (lointaine → proche)</option>
+                                <option value="date_fin_asc">🏁 Date fin (proche → lointaine)</option>
+                                <option value="date_fin_desc">🏁 Date fin (lointaine → proche)</option>
+                                <option value="statut">📊 Par statut</option>
+                                <option value="nom_asc">🔤 Nom (A → Z)</option>
+                                <option value="nom_desc">🔤 Nom (Z → A)</option>
+                                <option value="client">👤 Par client</option>
+                                <option value="budget_desc">💰 Budget (élevé → faible)</option>
+                                <option value="budget_asc">💰 Budget (faible → élevé)</option>
+                                <option value="temps_estime_desc">⏳ Plus long</option>
+                                <option value="temps_estime_asc">⏳ Plus court</option>
+                            </select>
                         </div>
-                        <select id="missionStatutFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            <option value="">Tous les statuts</option>
-                            <option value="en_attente">En attente</option>
-                            <option value="en_cours">En cours</option>
-                            <option value="en_pause">En pause</option>
-                            <option value="terminee">Terminée</option>
-                            <option value="annulee">Annulée</option>
-                        </select>
-                        <select id="missionPrioriteFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            <option value="">Toutes les priorités</option>
-                            <option value="basse">Basse</option>
-                            <option value="normale">Normale</option>
-                            <option value="haute">Haute</option>
-                            <option value="urgente">Urgente</option>
-                        </select>
+                        
+                        <!-- Section Filtres (collapsible) -->
+                        <div class="border border-gray-300 rounded-lg overflow-hidden">
+                            <!-- En-tête des filtres -->
+                            <button onclick="toggleMissionFilters()" 
+                                    class="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between">
+                                <span class="font-semibold text-gray-700 flex items-center gap-2">
+                                    <i class="fas fa-filter text-blue-600"></i>
+                                    Filtres avancés
+                                </span>
+                                <i id="missionFiltersIcon" class="fas fa-chevron-down text-gray-500 transition-transform"></i>
+                            </button>
+                            
+                            <!-- Contenu des filtres -->
+                            <div id="missionFiltersContent" class="hidden">
+                                <!-- Filtres par statut -->
+                                <div class="p-4 border-t border-gray-200">
+                                    <label class="text-sm font-semibold text-gray-700 mb-2 block">
+                                        <i class="fas fa-tasks mr-2"></i>Statut:
+                                    </label>
+                                    <div class="flex flex-wrap gap-2">
+                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <input type="checkbox" class="mission-statut-filter mr-2" value="en_attente" checked>
+                                            <span class="text-sm">⏳ En attente</span>
+                                        </label>
+                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <input type="checkbox" class="mission-statut-filter mr-2" value="en_cours" checked>
+                                            <span class="text-sm">⚙️ En cours</span>
+                                        </label>
+                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <input type="checkbox" class="mission-statut-filter mr-2" value="en_pause">
+                                            <span class="text-sm">⏸️ En pause</span>
+                                        </label>
+                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <input type="checkbox" class="mission-statut-filter mr-2" value="terminee">
+                                            <span class="text-sm">✅ Terminée</span>
+                                        </label>
+                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <input type="checkbox" class="mission-statut-filter mr-2" value="annulee">
+                                            <span class="text-sm">❌ Annulée</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <!-- Filtres par priorité -->
+                                <div class="p-4 border-t border-gray-200">
+                                    <label class="text-sm font-semibold text-gray-700 mb-2 block">
+                                        <i class="fas fa-exclamation-triangle mr-2"></i>Priorité:
+                                    </label>
+                                    <div class="flex flex-wrap gap-2">
+                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <input type="checkbox" class="mission-priorite-filter mr-2" value="basse" checked>
+                                            <span class="text-sm">🟢 Basse</span>
+                                        </label>
+                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <input type="checkbox" class="mission-priorite-filter mr-2" value="normale" checked>
+                                            <span class="text-sm">🟡 Normale</span>
+                                        </label>
+                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <input type="checkbox" class="mission-priorite-filter mr-2" value="haute" checked>
+                                            <span class="text-sm">🟠 Haute</span>
+                                        </label>
+                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <input type="checkbox" class="mission-priorite-filter mr-2" value="urgente" checked>
+                                            <span class="text-sm">🔴 Urgente</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Liste des missions -->
@@ -622,8 +698,13 @@ header('Content-Type: text/html; charset=utf-8');
                                     <input type="number" id="missionBudget" name="budget_prevu" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Temps estimé (heures)</label>
-                                    <input type="number" id="missionTemps" name="temps_estime" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-clock text-blue-600 mr-1"></i>Temps estimé (calculé automatiquement)
+                                    </label>
+                                    <input type="text" id="missionTemps" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed" placeholder="Calculé depuis les tâches">
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        <i class="fas fa-info-circle mr-1"></i>Le temps estimé est calculé automatiquement en fonction de la somme des tâches de la mission.
+                                    </p>
                                 </div>
                             </div>
                             

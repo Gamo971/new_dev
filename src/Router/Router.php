@@ -180,7 +180,7 @@ class Router
             ClientController::class => new ClientController($clientRepository),
             ContactController::class => new ContactController($contactRepository),
             MissionController::class => new MissionController($missionRepository),
-            TacheController::class => new TacheController($tacheRepository),
+            TacheController::class => new TacheController($tacheRepository, $missionRepository),
             ParametreController::class => new ParametreController($parametreRepository),
             default => throw new \Exception("Contrôleur non trouvé: {$controllerClass}")
         };

@@ -59,7 +59,10 @@ function displayMissions(missionsToShow) {
         return;
     }
     
-    container.innerHTML = missionsToShow.map(mission => {
+    // Appliquer le tri
+    const sortedMissions = sortMissions(missionsToShow);
+    
+    container.innerHTML = sortedMissions.map(mission => {
         // Construction des badges
         const badges = Badge(mission.priorite_libelle, mission.priorite_couleur) + 
                       Badge(mission.statut_libelle, 'bg-gray-100 text-gray-800');

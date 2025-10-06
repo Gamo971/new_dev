@@ -133,9 +133,10 @@ class MissionController extends ApiController
             if (isset($data['budget_reel'])) {
                 $mission->setBudgetReel($this->sanitizeFloat($data['budget_reel']));
             }
-            if (isset($data['temps_estime'])) {
-                $mission->setTempsEstime($this->sanitizeInt($data['temps_estime']) ?? 0);
-            }
+            // Le temps_estime n'est plus modifiable manuellement, il est calculé depuis les tâches
+            // if (isset($data['temps_estime'])) {
+            //     $mission->setTempsEstime($this->sanitizeInt($data['temps_estime']) ?? 0);
+            // }
             if (isset($data['temps_reel'])) {
                 $mission->setTempsReel($this->sanitizeInt($data['temps_reel']) ?? 0);
             }

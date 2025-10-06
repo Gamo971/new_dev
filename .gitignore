@@ -4,3 +4,5 @@
 .phpstan
 node_modules/
 .DS_Store
+/storage/*.sqlite
+/storage/*.sqlite-*

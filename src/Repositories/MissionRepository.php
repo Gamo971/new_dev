@@ -259,6 +259,39 @@ class MissionRepository
         return (int) $stmt->fetchColumn();
     }
 
+    /**
+     * Calcule le temps estimé total d'une mission en fonction des tâches liées
+     */
+    public function calculateTempsEstime(int $missionId): int
+    {
+        $sql = "
+            SELECT COALESCE(SUM(temps_estime), 0) as total_temps
+            FROM taches
+            WHERE mission_id = ?
+        ";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$missionId]);
+        $result = $stmt->fetch();
+        
+        return (int) $result['total_temps'];
+    }
+
+    /**
+     * Met à jour le temps estimé d'une mission en fonction des tâches
+     */
+    public function updateTempsEstimeFromTaches(int $missionId): void
+    {
+        $tempsEstime = $this->calculateTempsEstime($missionId);
+        
+        $sql = "UPDATE missions SET temps_estime = ?, updated_at = ? WHERE id = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            $tempsEstime,
+            (new \DateTime())->format('Y-m-d H:i:s'),
+            $missionId
+        ]);
+    }
+
     private function mapToMission(array $data): Mission
     {
         $mission = new Mission(
@@ -288,6 +321,28 @@ class MissionRepository
         $mission = $this->mapToMission($row);
         $array = $mission->toArray();
         $array['client_nom'] = $row['client_nom'] ?? null;
+        
+        // Calculer le temps estimé basé sur les tâches
+        if ($mission->getId() !== null) {
+            $tempsEstimeTaches = $this->calculateTempsEstime($mission->getId());
+            $array['temps_estime'] = $tempsEstimeTaches;
+            $array['temps_estime_formate'] = $this->formatTemps($tempsEstimeTaches);
+        }
+        
         return $array;
+    }
+    
+    /**
+     * Formate le temps en heures et minutes
+     */
+    private function formatTemps(int $minutes): string
+    {
+        $heures = intval($minutes / 60);
+        $mins = $minutes % 60;
+        
+        if ($heures > 0) {
+            return $mins > 0 ? "{$heures}h {$mins}min" : "{$heures}h";
+        }
+        return "{$mins}min";
     }
 }

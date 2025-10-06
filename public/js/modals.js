@@ -140,7 +140,8 @@ async function loadMissionData(id) {
             document.getElementById('missionDateDebut').value = mission.date_debut || '';
             document.getElementById('missionDateFin').value = mission.date_fin_prevue || '';
             document.getElementById('missionBudget').value = mission.budget_prevu || '';
-            document.getElementById('missionTemps').value = mission.temps_estime ? Math.round(mission.temps_estime / 60) : '';
+            // Afficher le temps estimé formaté (calculé automatiquement depuis les tâches)
+            document.getElementById('missionTemps').value = mission.temps_estime_formate || '0min';
             document.getElementById('missionNotes').value = mission.notes || '';
         }
     } catch (error) {
@@ -288,10 +289,8 @@ async function saveMission(event) {
     const formData = new FormData(event.target);
     const data = Object.fromEntries(formData.entries());
     
-    // Convertir le temps estimé en minutes
-    if (data.temps_estime) {
-        data.temps_estime = parseInt(data.temps_estime) * 60;
-    }
+    // Ne pas envoyer le temps estimé car il est calculé automatiquement depuis les tâches
+    delete data.temps_estime;
 
     const missionId = document.getElementById('missionId').value;
     const url = missionId ? `/api/missions/${missionId}` : '/api/missions';
