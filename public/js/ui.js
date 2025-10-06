@@ -75,22 +75,43 @@ function displayMissions(missionsToShow) {
             InfoField('Temps', mission.temps_estime_formate)
         ].join('');
         
-        // Construction du footer
+        // Construction du footer avec bouton pour afficher les tâches
         const footer = `
-            <div class="text-sm text-gray-500">
-                Créée le ${formatDateTime(mission.created_at)}
+            <div class="flex justify-between items-center w-full">
+                <div class="text-sm text-gray-500">
+                    Créée le ${formatDateTime(mission.created_at)}
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="toggleMissionTaches(${mission.id}, event)" 
+                            class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-2"
+                            title="Voir les tâches">
+                        <i class="fas fa-tasks"></i>
+                        <span>Tâches</span>
+                        <i id="mission-taches-icon-${mission.id}" class="fas fa-chevron-down transition-transform"></i>
+                    </button>
+                    ${ActionButtons('mission', mission.id)}
+                </div>
             </div>
-            ${ActionButtons('mission', mission.id)}
         `;
         
-        return Card({
-            title: mission.nom,
-            subtitle: `Client: ${mission.client_nom || 'Non défini'}`,
-            badges: badges,
-            description: mission.description || '',
-            fields: fields,
-            footer: footer
-        });
+        // Créer la carte avec un conteneur pour les tâches
+        return `
+            <div class="mission-card-wrapper">
+                ${Card({
+                    title: mission.nom,
+                    subtitle: `Client: ${mission.client_nom || 'Non défini'}`,
+                    badges: badges,
+                    description: mission.description || '',
+                    fields: fields,
+                    footer: footer
+                })}
+                <div id="mission-taches-${mission.id}" class="mission-taches-container hidden bg-gray-50 border border-t-0 border-gray-200 rounded-b-lg p-4 -mt-2">
+                    <div class="flex items-center justify-center py-4">
+                        <i class="fas fa-spinner fa-spin text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        `;
     }).join('');
 }
 

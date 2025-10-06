@@ -20,3 +20,40 @@
     border-color: #3b82f6;
 }
 
+/* Styles pour l'accordéon des missions */
+.mission-card-wrapper {
+    margin-bottom: 1rem;
+}
+
+.mission-taches-container {
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+}
+
+.mission-taches-container.hidden {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border: none;
+}
+
+.mission-taches-container:not(.hidden) {
+    animation: slideDown 0.3s ease-in-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation de rotation pour l'icône */
+.rotate-180 {
+    transform: rotate(180deg);
+}
+

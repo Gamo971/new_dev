@@ -247,3 +247,108 @@ async function deleteContact(id) {
     }
 }
 
+/**
+ * Charge les tâches d'une mission spécifique
+ */
+async function loadMissionTaches(missionId) {
+    try {
+        const response = await fetch(`/api/taches/mission/${missionId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            return data.data;
+        } else {
+            console.error('Erreur lors du chargement des tâches:', data.error);
+            return [];
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        return [];
+    }
+}
+
+/**
+ * Affiche/masque les tâches d'une mission (accordéon)
+ */
+async function toggleMissionTaches(missionId, event) {
+    event.stopPropagation();
+    
+    const container = document.getElementById(`mission-taches-${missionId}`);
+    const icon = document.getElementById(`mission-taches-icon-${missionId}`);
+    
+    if (!container) return;
+    
+    // Si le conteneur est visible, on le masque
+    if (!container.classList.contains('hidden')) {
+        container.classList.add('hidden');
+        icon.classList.remove('rotate-180');
+        return;
+    }
+    
+    // Afficher le conteneur et charger les tâches
+    container.classList.remove('hidden');
+    icon.classList.add('rotate-180');
+    
+    // Charger les tâches de la mission
+    const taches = await loadMissionTaches(missionId);
+    
+    // Afficher les tâches
+    if (taches.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-gray-500 py-8">
+                <i class="fas fa-inbox text-4xl mb-3 text-gray-400"></i>
+                <p>Aucune tâche pour cette mission</p>
+                <button onclick="openTacheModalForMission(${missionId})" 
+                        class="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Ajouter une tâche
+                </button>
+            </div>
+        `;
+    } else {
+        container.innerHTML = `
+            <div class="mb-4 flex justify-between items-center">
+                <h4 class="font-semibold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-list-check text-green-600"></i>
+                    Tâches de la mission (${taches.length})
+                </h4>
+                <button onclick="openTacheModalForMission(${missionId})" 
+                        class="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Ajouter une tâche
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                ${taches.map(tache => `
+                    <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-2">
+                            <h5 class="font-semibold text-gray-800 text-sm">${tache.nom}</h5>
+                            <div class="flex gap-1">
+                                ${ActionButton('fa-edit', `openTacheModal(${tache.id})`, 'Modifier', 'text-blue-600 hover:text-blue-800 text-xs')}
+                                ${ActionButton('fa-trash', `deleteTache(${tache.id})`, 'Supprimer', 'text-red-600 hover:text-red-800 text-xs')}
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            ${Badge(tache.priorite_libelle, tache.priorite_couleur)}
+                            ${Badge(tache.statut_libelle, 'bg-gray-100 text-gray-800')}
+                        </div>
+                        ${tache.description ? `<p class="text-xs text-gray-600 mb-2">${tache.description}</p>` : ''}
+                        <div class="text-xs text-gray-500 space-y-1">
+                            ${tache.date_echeance ? `<div><i class="fas fa-flag-checkered mr-1 text-red-500"></i>Échéance: ${formatDate(tache.date_echeance)}</div>` : ''}
+                            ${tache.date_planifiee ? `<div><i class="fas fa-calendar-check mr-1 text-blue-500"></i>Planifiée: ${formatDate(tache.date_planifiee)}</div>` : ''}
+                            ${tache.temps_estime ? `<div><i class="fas fa-clock mr-1"></i>Temps: ${tache.temps_estime_formate}</div>` : ''}
+                            ${tache.assigne_a ? `<div><i class="fas fa-user mr-1"></i>${tache.assigne_a}</div>` : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+}
+
+/**
+ * Ouvre le modal de tâche pré-rempli avec une mission
+ */
+async function openTacheModalForMission(missionId) {
+    await openTacheModal();
+    document.getElementById('tacheMissionId').value = missionId;
+}
+
