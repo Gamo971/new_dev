@@ -291,7 +291,6 @@ async function toggleMissionTaches(missionId, event) {
     
     // Charger les tâches de la mission
     const taches = await loadMissionTaches(missionId);
-    console.log(`Tâches chargées pour la mission ${missionId}:`, taches);
     
     // Afficher les tâches
     if (taches.length === 0) {
