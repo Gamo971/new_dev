@@ -8,6 +8,7 @@ use App\Controllers\ClientController;
 use App\Controllers\ContactController;
 use App\Controllers\MissionController;
 use App\Controllers\TacheController;
+use App\Controllers\ParametreController;
 
 class Router
 {
@@ -63,6 +64,16 @@ class Router
         $this->addRoute('GET', '/api/taches/search', [TacheController::class, 'search']);
         $this->addRoute('GET', '/api/taches/retard', [TacheController::class, 'enRetard']);
         $this->addRoute('GET', '/api/taches/statistiques', [TacheController::class, 'statistiques']);
+
+        // Routes pour les paramètres (ordre important : spécifiques avant génériques)
+        $this->addRoute('GET', '/api/parametres', [ParametreController::class, 'index']);
+        $this->addRoute('PUT', '/api/parametres/batch', [ParametreController::class, 'updateBatch']);
+        $this->addRoute('GET', '/api/parametres/cle/([^/]+)', [ParametreController::class, 'showByCle']);
+        $this->addRoute('POST', '/api/parametres/([^/]+)/reset', [ParametreController::class, 'reset']);
+        $this->addRoute('GET', '/api/parametres/(\d+)', [ParametreController::class, 'show']);
+        $this->addRoute('POST', '/api/parametres', [ParametreController::class, 'store']);
+        $this->addRoute('PUT', '/api/parametres/(\d+)', [ParametreController::class, 'update']);
+        $this->addRoute('DELETE', '/api/parametres/(\d+)', [ParametreController::class, 'destroy']);
     }
 
     private function addRoute(string $method, string $pattern, array $handler): void
@@ -162,6 +173,7 @@ class Router
         $contactRepository = new \App\Repositories\ContactRepository($database);
         $missionRepository = new \App\Repositories\MissionRepository($database);
         $tacheRepository = new \App\Repositories\TacheRepository($database);
+        $parametreRepository = new \App\Repositories\ParametreRepository($database->getPdo());
         
         // Créer le contrôleur avec les bonnes dépendances
         return match ($controllerClass) {
@@ -169,6 +181,7 @@ class Router
             ContactController::class => new ContactController($contactRepository),
             MissionController::class => new MissionController($missionRepository),
             TacheController::class => new TacheController($tacheRepository),
+            ParametreController::class => new ParametreController($parametreRepository),
             default => throw new \Exception("Contrôleur non trouvé: {$controllerClass}")
         };
     }

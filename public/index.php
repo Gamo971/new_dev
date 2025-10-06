@@ -47,7 +47,7 @@ header('Content-Type: text/html; charset=utf-8');
     <title>Gestionnaire de Missions - Cabinet Jarry</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/style.css?v=2">
+    <link rel="stylesheet" href="/css/style.css?v=6">
     
     <!-- Bibliothèques pour le Planning -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -93,6 +93,9 @@ header('Content-Type: text/html; charset=utf-8');
                 </button>
                 <button class="tab px-4 py-2 rounded-lg border border-gray-300 hover:bg-blue-50 transition-colors" onclick="showTab('planning'); showPlanningTab();">
                     <i class="fas fa-calendar-alt mr-2"></i>Planning
+                </button>
+                <button class="tab px-4 py-2 rounded-lg border border-gray-300 hover:bg-blue-50 transition-colors" onclick="showTab('parametres'); loadParametres();">
+                    <i class="fas fa-cog mr-2"></i>Paramètres
                 </button>
             </div>
         </nav>
@@ -438,6 +441,107 @@ header('Content-Type: text/html; charset=utf-8');
                     <!-- Conteneur pour les vues -->
                     <div id="planning-container">
                         <!-- Le contenu sera injecté ici -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet Paramètres -->
+            <div id="parametres" class="tab-content">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">
+                            <i class="fas fa-cog text-purple-600 mr-2"></i>Paramètres de Disponibilité
+                        </h2>
+                        <button onclick="saveParametres()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
+                            <i class="fas fa-save"></i>
+                            Enregistrer
+                        </button>
+                    </div>
+
+                    <!-- Jours de travail -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-calendar-week text-blue-500"></i>
+                            Jours de travail
+                        </h3>
+                        <p class="text-sm text-gray-500 mb-4">Sélectionnez les jours où vous travaillez habituellement</p>
+                        <div id="jours-travail-container" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                            <!-- Les jours seront chargés dynamiquement -->
+                        </div>
+                    </div>
+
+                    <!-- Horaires de travail -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-clock text-green-500"></i>
+                            Horaires de travail
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Heure de début</label>
+                                <input type="time" id="horaire_debut" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Heure de fin</label>
+                                <input type="time" id="horaire_fin" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Pause (minutes)</label>
+                                <input type="number" id="horaire_pause_duree" min="0" max="180" step="15" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Capacité de travail -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-battery-three-quarters text-orange-500"></i>
+                            Capacité de travail
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Heures effectives par jour</label>
+                                <input type="number" id="heures_travail_par_jour" min="1" max="12" step="0.5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                                <p class="text-xs text-gray-500 mt-1">Temps de travail réel sur projets (hors pauses, réunions, emails)</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Heures par semaine</label>
+                                <input type="number" id="heures_travail_par_semaine" min="1" max="60" step="1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                                <p class="text-xs text-gray-500 mt-1">Total hebdomadaire</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paramètres de planification -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-sliders-h text-purple-500"></i>
+                            Paramètres de planification
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Buffer de sécurité (%)</label>
+                                <input type="number" id="buffer_planification" min="0" max="100" step="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                                <p class="text-xs text-gray-500 mt-1">Marge de sécurité ajoutée aux délais (ex: 20% = 1.2x le temps estimé)</p>
+                            </div>
+                            <div class="flex items-center mt-8">
+                                <input type="checkbox" id="planification_auto_enabled" class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                                <label for="planification_auto_enabled" class="ml-2 text-sm font-medium text-gray-700">
+                                    Activer la planification automatique
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Récapitulatif -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 class="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-info-circle"></i>
+                            Récapitulatif
+                        </h4>
+                        <div id="parametres-recap" class="text-sm text-blue-700">
+                            <!-- Sera rempli dynamiquement -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -827,18 +931,21 @@ header('Content-Type: text/html; charset=utf-8');
     </div>
 
     <!-- Scripts JavaScript modulaires -->
-    <script src="/js/utils.js?v=2"></script>
-    <script src="/js/components.js?v=2"></script>
-    <script src="/js/api.js?v=2"></script>
-    <script src="/js/task-scheduler.js?v=2"></script>
-    <script src="/js/ui.js?v=2"></script>
-    <script src="/js/filters.js?v=2"></script>
-    <script src="/js/modals.js?v=2"></script>
+    <script src="/js/utils.js?v=6"></script>
+    <script src="/js/components.js?v=6"></script>
+    <script src="/js/api.js?v=6"></script>
+    <script src="/js/capacity-manager.js?v=6"></script>
+    <script src="/js/task-scheduler.js?v=6"></script>
+    <script src="/js/ui.js?v=6"></script>
+    <script src="/js/filters.js?v=6"></script>
+    <script src="/js/modals.js?v=6"></script>
     <!-- Planning -->
-    <script src="/js/planning/scheduling.js?v=2"></script>
-    <script src="/js/planning/kanban.js?v=2"></script>
-    <script src="/js/planning/agenda.js?v=2"></script>
-    <script src="/js/planning.js?v=2"></script>
-    <script src="/js/app.js?v=2"></script>
+    <script src="/js/planning/scheduling.js?v=6"></script>
+    <script src="/js/planning/kanban.js?v=6"></script>
+    <script src="/js/planning/agenda.js?v=6"></script>
+    <script src="/js/planning.js?v=6"></script>
+    <!-- Paramètres -->
+    <script src="/js/parametres.js?v=6"></script>
+    <script src="/js/app.js?v=6"></script>
 </body>
 </html>

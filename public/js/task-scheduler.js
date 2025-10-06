@@ -63,11 +63,13 @@ function updateMargeInfo() {
 
 /**
  * Planification automatique basée sur l'échéance et la priorité
+ * Utilise l'algorithme intelligent avec gestion de capacité
  */
-function autoScheduleTask() {
+async function autoScheduleTask() {
     const dateEcheance = document.getElementById('tacheDateEcheance').value;
     const priorite = document.getElementById('tachePriorite').value;
     const tempsEstime = parseInt(document.getElementById('tacheTempsEstime').value) || 0;
+    const tacheId = document.getElementById('tacheId').value || null;
     
     if (!dateEcheance) {
         showNotification('Veuillez d\'abord définir une date d\'échéance', 'warning');
@@ -75,58 +77,130 @@ function autoScheduleTask() {
         return;
     }
     
-    const echeance = new Date(dateEcheance);
-    const aujourdhui = new Date();
-    aujourdhui.setHours(0, 0, 0, 0);
+    // Créer un objet tâche temporaire
+    const tacheTmp = {
+        id: tacheId,
+        nom: document.getElementById('tacheNom').value || 'Nouvelle tâche',
+        date_echeance: dateEcheance,
+        priorite: priorite,
+        temps_estime: tempsEstime
+    };
     
-    // Calculer le nombre de jours de marge en fonction de la priorité
-    let joursAvance;
-    switch (priorite) {
-        case 'urgente':
-            joursAvance = 1; // 1 jour avant
-            break;
-        case 'haute':
-            joursAvance = 3; // 3 jours avant
-            break;
-        case 'normale':
-            joursAvance = 5; // 5 jours avant
-            break;
-        case 'basse':
-            joursAvance = 7; // 7 jours avant
-            break;
-        default:
-            joursAvance = 5;
+    // Utiliser l'algorithme intelligent avec gestion de capacité
+    let dateStr;
+    if (window.calculateSmartSchedulingWithCapacity) {
+        dateStr = await calculateSmartSchedulingWithCapacity(tacheTmp);
+    } else {
+        // Fallback si capacity-manager pas chargé
+        dateStr = calculateSmartScheduling(tacheTmp);
     }
     
-    // Ajuster en fonction du temps estimé
-    const heuresEstimees = tempsEstime / 60;
-    if (heuresEstimees > 8) {
-        // Plus d'une journée de travail
-        joursAvance += Math.ceil(heuresEstimees / 8);
-    }
-    
-    // Calculer la date de planification suggérée
-    const datePlanifiee = new Date(echeance);
-    datePlanifiee.setDate(datePlanifiee.getDate() - joursAvance);
-    
-    // Ne pas planifier dans le passé
-    if (datePlanifiee < aujourdhui) {
-        datePlanifiee.setTime(aujourdhui.getTime());
+    if (!dateStr) {
+        showNotification('Impossible de calculer une date de planification', 'error');
+        return;
     }
     
     // Mettre à jour le champ
-    const dateStr = datePlanifiee.toISOString().split('T')[0];
     document.getElementById('tacheDatePlanifiee').value = dateStr;
     
     // Mettre à jour l'affichage de la marge
     updateMargeInfo();
     
-    // Notification
-    showNotification(`📅 Date planifiée suggérée : ${formatDate(dateStr)} (${joursAvance} jours avant l'échéance)`, 'success');
+    // Message informatif avec info capacité
+    const datePlanifiee = new Date(dateStr);
+    const echeance = new Date(dateEcheance);
+    const joursOuvres = compterJoursOuvres(datePlanifiee, echeance);
+    
+    // Vérifier si on a du reporter à cause de la capacité
+    const dateBaseSansCapacite = calculateSmartScheduling(tacheTmp);
+    let message = `📅 Date planifiée : ${formatDate(dateStr)} (${joursOuvres} jour(s) ouvré(s) avant échéance)`;
+    
+    if (dateBaseSansCapacite !== dateStr && tempsEstime > 0) {
+        message += ' ⚠️ Date ajustée selon la capacité disponible';
+    }
+    
+    showNotification(message, 'success');
+}
+
+/**
+ * Vérifie si une date est un jour ouvré selon les paramètres
+ * @param {Date} date
+ * @returns {boolean}
+ */
+function isJourOuvre(date) {
+    // Si les paramètres ne sont pas encore chargés, tous les jours sauf dimanche
+    if (!window.parametresData || Object.keys(window.parametresData).length === 0) {
+        return date.getDay() !== 0; // Pas le dimanche par défaut
+    }
+    
+    const joursSemaine = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+    const jourName = joursSemaine[date.getDay()];
+    const cle = `jours_travail_${jourName}`;
+    
+    return parametresData[cle]?.valeur === '1';
+}
+
+/**
+ * Trouve le prochain jour ouvré à partir d'une date
+ * @param {Date} date
+ * @returns {Date}
+ */
+function getProchainJourOuvre(date) {
+    const result = new Date(date);
+    let tentatives = 0;
+    
+    // Chercher jusqu'à 14 jours maximum (éviter boucle infinie)
+    while (!isJourOuvre(result) && tentatives < 14) {
+        result.setDate(result.getDate() + 1);
+        tentatives++;
+    }
+    
+    return result;
+}
+
+/**
+ * Calcule le nombre de jours ouvrés entre deux dates
+ * @param {Date} dateDebut
+ * @param {Date} dateFin
+ * @returns {number}
+ */
+function compterJoursOuvres(dateDebut, dateFin) {
+    let count = 0;
+    const current = new Date(dateDebut);
+    
+    while (current <= dateFin) {
+        if (isJourOuvre(current)) {
+            count++;
+        }
+        current.setDate(current.getDate() + 1);
+    }
+    
+    return count;
+}
+
+/**
+ * Recule d'un certain nombre de jours ouvrés à partir d'une date
+ * @param {Date} date
+ * @param {number} joursOuvres
+ * @returns {Date}
+ */
+function reculerJoursOuvres(date, joursOuvres) {
+    const result = new Date(date);
+    let count = 0;
+    
+    while (count < joursOuvres) {
+        result.setDate(result.getDate() - 1);
+        if (isJourOuvre(result)) {
+            count++;
+        }
+    }
+    
+    return result;
 }
 
 /**
  * Calcule une suggestion de planification intelligente pour une tâche
+ * Prend en compte les jours et horaires de travail définis dans les paramètres
  * @param {Object} tache - Tâche à planifier
  * @returns {string} Date suggérée au format YYYY-MM-DD
  */
@@ -139,28 +213,45 @@ function calculateSmartScheduling(tache) {
     const aujourdhui = new Date();
     aujourdhui.setHours(0, 0, 0, 0);
     
-    // Marge selon priorité
+    // Récupérer les paramètres de disponibilité
+    const heuresTravailJour = window.getHeuresTravailParJour ? getHeuresTravailParJour() : 7;
+    const bufferPlanif = window.getBufferPlanification ? getBufferPlanification() : 0.2;
+    
+    // Marge selon priorité (en jours ouvrés)
     const marges = {
         'urgente': 1,
-        'haute': 3,
-        'normale': 5,
-        'basse': 7
+        'haute': 2,
+        'normale': 3,
+        'basse': 5
     };
     
-    let joursAvance = marges[tache.priorite] || 5;
+    let joursOuvresAvance = marges[tache.priorite] || 3;
     
-    // Ajuster selon temps estimé
+    // Ajuster selon temps estimé et heures de travail par jour
     const heuresEstimees = (tache.temps_estime || 0) / 60;
-    if (heuresEstimees > 8) {
-        joursAvance += Math.ceil(heuresEstimees / 8);
+    if (heuresEstimees > 0) {
+        // Appliquer le buffer de sécurité
+        const heuresAvecBuffer = heuresEstimees * (1 + bufferPlanif);
+        
+        // Calculer le nombre de jours ouvrés nécessaires
+        const joursNecessaires = Math.ceil(heuresAvecBuffer / heuresTravailJour);
+        
+        // Prendre le maximum entre la marge de priorité et les jours nécessaires
+        joursOuvresAvance = Math.max(joursOuvresAvance, joursNecessaires);
     }
     
-    const datePlanifiee = new Date(echeance);
-    datePlanifiee.setDate(datePlanifiee.getDate() - joursAvance);
+    // Calculer la date de planification en reculant de N jours ouvrés
+    let datePlanifiee = reculerJoursOuvres(echeance, joursOuvresAvance);
     
     // Ne pas planifier dans le passé
     if (datePlanifiee < aujourdhui) {
-        return aujourdhui.toISOString().split('T')[0];
+        // Planifier au prochain jour ouvré
+        datePlanifiee = getProchainJourOuvre(aujourdhui);
+    } else {
+        // S'assurer que c'est un jour ouvré
+        if (!isJourOuvre(datePlanifiee)) {
+            datePlanifiee = getProchainJourOuvre(datePlanifiee);
+        }
     }
     
     return datePlanifiee.toISOString().split('T')[0];
@@ -232,12 +323,37 @@ async function rescheduleLateTasks() {
             return;
         }
         
-        // Re-planifier chaque tâche
+        // Calculer la charge actuelle une fois pour toutes les tâches
+        let chargeMap = {};
+        if (window.getChargeParJour) {
+            chargeMap = await getChargeParJour();
+        }
+        
+        // Re-planifier chaque tâche en tenant compte de la capacité
         let replanifiees = 0;
         let erreurs = 0;
+        let ajustements = 0; // Nombre de tâches dont la date a été ajustée pour la capacité
         
         for (const tache of tachesAReplanifier) {
-            const nouvelleDatePlan = calculateSmartScheduling(tache);
+            let nouvelleDatePlan;
+            
+            // Utiliser l'algorithme avec gestion de capacité si disponible
+            if (window.calculateSmartSchedulingWithCapacity) {
+                nouvelleDatePlan = await calculateSmartSchedulingWithCapacity(tache, chargeMap);
+                
+                // Vérifier si la date a été ajustée par rapport à la planification sans capacité
+                const dateSansCapacite = calculateSmartScheduling(tache);
+                if (nouvelleDatePlan !== dateSansCapacite && tache.temps_estime) {
+                    ajustements++;
+                }
+                
+                // Mettre à jour la charge map pour les prochaines tâches
+                if (nouvelleDatePlan && tache.temps_estime) {
+                    chargeMap[nouvelleDatePlan] = (chargeMap[nouvelleDatePlan] || 0) + parseInt(tache.temps_estime);
+                }
+            } else {
+                nouvelleDatePlan = calculateSmartScheduling(tache);
+            }
             
             if (nouvelleDatePlan) {
                 try {
@@ -266,8 +382,11 @@ async function rescheduleLateTasks() {
         
         // Message de résultat
         let message = `✅ ${replanifiees} tâche(s) re-planifiée(s) avec succès !`;
+        if (ajustements > 0) {
+            message += ` (${ajustements} date(s) ajustée(s) selon la capacité)`;
+        }
         if (erreurs > 0) {
-            message += ` (${erreurs} erreur(s))`;
+            message += ` ⚠️ ${erreurs} erreur(s)`;
         }
         
         showNotification(message, replanifiees > 0 ? 'success' : 'warning');

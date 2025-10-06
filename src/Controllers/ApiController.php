@@ -13,6 +13,11 @@ abstract class ApiController
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }
 
+    protected function jsonResponse(array $data, int $statusCode = 200): void
+    {
+        $this->sendJson($data, $statusCode);
+    }
+
     protected function sendSuccess(array $data = [], string $message = '', int $statusCode = 200): void
     {
         $response = ['success' => true];
