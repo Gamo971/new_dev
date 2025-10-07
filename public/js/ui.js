@@ -64,8 +64,7 @@ function displayMissions(missionsToShow) {
     
     container.innerHTML = sortedMissions.map(mission => {
         // Construction des badges
-        const badges = Badge(mission.priorite_libelle, mission.priorite_couleur) + 
-                      Badge(mission.statut_libelle, 'bg-gray-100 text-gray-800');
+        const badges = Badge(mission.statut_libelle, 'bg-gray-100 text-gray-800');
         
         // Construction des champs d'information
         const fields = [
@@ -131,8 +130,8 @@ function displayTaches(tachesToShow) {
     
     container.innerHTML = sortedTaches.map(tache => {
         // Construction des badges
-        const badges = Badge(tache.priorite_libelle, tache.priorite_couleur) + 
-                      Badge(tache.statut_libelle, 'bg-gray-100 text-gray-800');
+        const badges = Badge(tache.statut_libelle, 'bg-gray-100 text-gray-800') + 
+                      (tache.planification_type_libelle ? Badge(tache.planification_type_libelle, tache.planification_manuelle ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800') : '');
         
         // Construction des champs d'information
         const fields = [

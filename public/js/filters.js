@@ -15,10 +15,6 @@ function setupEventListeners() {
         checkbox.addEventListener('change', filterMissions);
     });
     
-    // Filtres de priorité des missions (checkboxes)
-    document.querySelectorAll('.mission-priorite-filter').forEach(checkbox => {
-        checkbox.addEventListener('change', filterMissions);
-    });
     
     // Recherche des tâches
     document.getElementById('tacheSearch').addEventListener('input', filterTaches);
@@ -29,10 +25,6 @@ function setupEventListeners() {
         checkbox.addEventListener('change', filterTaches);
     });
     
-    // Filtres de priorité des tâches (checkboxes)
-    document.querySelectorAll('.tache-priorite-filter').forEach(checkbox => {
-        checkbox.addEventListener('change', filterTaches);
-    });
     
     // Recherche des clients
     document.getElementById('clientSearch').addEventListener('input', filterClients);
@@ -53,9 +45,6 @@ function filterMissions() {
     const selectedStatuts = Array.from(document.querySelectorAll('.mission-statut-filter:checked'))
         .map(cb => cb.value);
     
-    // Récupérer les priorités cochées
-    const selectedPriorites = Array.from(document.querySelectorAll('.mission-priorite-filter:checked'))
-        .map(cb => cb.value);
     
     let filtered = missions.filter(mission => {
         const matchesSearch = !search || 
@@ -66,10 +55,7 @@ function filterMissions() {
         // Si aucun statut n'est coché, on affiche tout
         const matchesStatut = selectedStatuts.length === 0 || selectedStatuts.includes(mission.statut);
         
-        // Si aucune priorité n'est cochée, on affiche tout
-        const matchesPriorite = selectedPriorites.length === 0 || selectedPriorites.includes(mission.priorite);
-        
-        return matchesSearch && matchesStatut && matchesPriorite;
+        return matchesSearch && matchesStatut;
     });
     
     displayMissions(filtered);
@@ -85,9 +71,6 @@ function filterTaches() {
     const selectedStatuts = Array.from(document.querySelectorAll('.tache-statut-filter:checked'))
         .map(cb => cb.value);
     
-    // Récupérer les priorités cochées
-    const selectedPriorites = Array.from(document.querySelectorAll('.tache-priorite-filter:checked'))
-        .map(cb => cb.value);
     
     let filtered = taches.filter(tache => {
         const matchesSearch = !search || 
@@ -98,10 +81,7 @@ function filterTaches() {
         // Si aucun statut n'est coché, on affiche tout
         const matchesStatut = selectedStatuts.length === 0 || selectedStatuts.includes(tache.statut);
         
-        // Si aucune priorité n'est cochée, on affiche tout
-        const matchesPriorite = selectedPriorites.length === 0 || selectedPriorites.includes(tache.priorite);
-        
-        return matchesSearch && matchesStatut && matchesPriorite;
+        return matchesSearch && matchesStatut;
     });
     
     displayTaches(filtered);
@@ -188,7 +168,6 @@ function sortMissions(missionsToSort) {
     const sortBy = document.getElementById('missionSortBy').value;
     const sorted = [...missionsToSort];
     
-    const prioriteOrder = { 'urgente': 4, 'haute': 3, 'normale': 2, 'basse': 1 };
     const statutOrder = { 'en_attente': 1, 'en_cours': 2, 'en_pause': 3, 'terminee': 4, 'annulee': 5 };
     
     switch(sortBy) {
@@ -197,12 +176,6 @@ function sortMissions(missionsToSort) {
             break;
         case 'date_creation_asc':
             sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-            break;
-        case 'priorite_desc':
-            sorted.sort((a, b) => (prioriteOrder[b.priorite] || 0) - (prioriteOrder[a.priorite] || 0));
-            break;
-        case 'priorite_asc':
-            sorted.sort((a, b) => (prioriteOrder[a.priorite] || 0) - (prioriteOrder[b.priorite] || 0));
             break;
         case 'date_debut_asc':
             sorted.sort((a, b) => {
@@ -275,7 +248,6 @@ function sortTaches(tachesToSort) {
     const sortBy = document.getElementById('tacheSortBy').value;
     const sorted = [...tachesToSort];
     
-    const prioriteOrder = { 'urgente': 4, 'haute': 3, 'normale': 2, 'basse': 1 };
     const statutOrder = { 'a_faire': 1, 'en_cours': 2, 'terminee': 3, 'annulee': 4 };
     
     switch(sortBy) {
@@ -284,12 +256,6 @@ function sortTaches(tachesToSort) {
             break;
         case 'date_creation_asc':
             sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-            break;
-        case 'priorite_desc':
-            sorted.sort((a, b) => (prioriteOrder[b.priorite] || 0) - (prioriteOrder[a.priorite] || 0));
-            break;
-        case 'priorite_asc':
-            sorted.sort((a, b) => (prioriteOrder[a.priorite] || 0) - (prioriteOrder[b.priorite] || 0));
             break;
         case 'echeance_asc':
             sorted.sort((a, b) => {

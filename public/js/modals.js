@@ -94,6 +94,21 @@ async function openContactModal(id = null) {
 }
 
 /**
+ * Marque l'heure comme prioritaire (définie manuellement par l'utilisateur)
+ */
+function markHeurePrioritaire() {
+    const heureInput = document.getElementById('tacheHeureDebutPlanifiee');
+    const prioritaireInput = document.getElementById('tacheHeurePrioritaire');
+    
+    if (heureInput.value) {
+        prioritaireInput.value = 'true';
+        console.log('🕐 Heure marquée comme prioritaire (définie manuellement)');
+    } else {
+        prioritaireInput.value = 'false';
+    }
+}
+
+/**
  * Ferme le modal de mission
  */
 function closeMissionModal() {
@@ -136,7 +151,6 @@ async function loadMissionData(id) {
             document.getElementById('missionNom').value = mission.nom;
             document.getElementById('missionDescription').value = mission.description || '';
             document.getElementById('missionStatut').value = mission.statut;
-            document.getElementById('missionPriorite').value = mission.priorite;
             document.getElementById('missionDateDebut').value = mission.date_debut || '';
             document.getElementById('missionDateFin').value = mission.date_fin_prevue || '';
             document.getElementById('missionBudget').value = mission.budget_prevu || '';
@@ -164,9 +178,9 @@ async function loadTacheData(id) {
             document.getElementById('tacheNom').value = tache.nom;
             document.getElementById('tacheDescription').value = tache.description || '';
             document.getElementById('tacheStatut').value = tache.statut;
-            document.getElementById('tachePriorite').value = tache.priorite;
             document.getElementById('tacheDateEcheance').value = tache.date_echeance || '';
             document.getElementById('tacheDatePlanifiee').value = tache.date_planifiee || '';
+            document.getElementById('tacheHeureDebutPlanifiee').value = tache.heure_debut_planifiee ? tache.heure_debut_planifiee.substring(0, 5) : '';
             document.getElementById('tacheAssigne').value = tache.assigne_a || '';
             document.getElementById('tacheTempsEstime').value = tache.temps_estime || '';
             document.getElementById('tacheOrdre').value = tache.ordre || '';

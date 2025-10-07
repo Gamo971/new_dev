@@ -10,14 +10,8 @@
 function calculateTaskPriority(tache) {
     let score = 0;
     
-    // 1. Priorité intrinsèque (40%)
-    const prioriteScores = {
-        'urgente': 100,
-        'haute': 75,
-        'normale': 50,
-        'basse': 25
-    };
-    score += (prioriteScores[tache.priorite] || 50) * 0.4;
+    // 1. Score de base (40%) - plus de système de priorité
+    score += 50 * 0.4;
     
     // 2. Urgence temporelle (40%)
     if (tache.date_echeance) {
@@ -97,12 +91,7 @@ function suggestTaskOrder(taches) {
 function getPriorityReason(tache) {
     const reasons = [];
     
-    // Priorité
-    if (tache.priorite === 'urgente') {
-        reasons.push('⚠️ Priorité urgente');
-    } else if (tache.priorite === 'haute') {
-        reasons.push('🔴 Priorité haute');
-    }
+    // Plus de système de priorité
     
     // Échéance
     if (tache.date_echeance) {
@@ -168,7 +157,6 @@ function showSchedulingModal() {
                                     <div class="flex items-start justify-between gap-2">
                                         <h4 class="font-semibold text-gray-800">${tache.nom}</h4>
                                         <div class="flex items-center gap-2 flex-shrink-0">
-                                            ${Badge(tache.priorite_libelle, tache.priorite_couleur)}
                                             <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm font-medium">
                                                 Score: ${tache.priorityScore}
                                             </span>

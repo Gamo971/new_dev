@@ -32,10 +32,10 @@ class TacheRepository
     {
         $sql = "
             INSERT INTO taches (
-                mission_id, nom, description, statut, priorite, date_echeance,
-                date_planifiee, date_fin_reelle, temps_estime, temps_reel, ordre, assigne_a,
+                mission_id, nom, description, statut, date_echeance,
+                date_planifiee, heure_debut_planifiee, planification_type, date_fin_reelle, temps_estime, temps_reel, ordre, assigne_a,
                 notes, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ";
 
         $stmt = $this->pdo->prepare($sql);
@@ -44,9 +44,10 @@ class TacheRepository
             $tache->getNom(),
             $tache->getDescription(),
             $tache->getStatut(),
-            $tache->getPriorite(),
             $tache->getDateEcheance()?->format('Y-m-d'),
             $tache->getDatePlanifiee()?->format('Y-m-d'),
+            $tache->getHeureDebutPlanifiee(),
+            $tache->getPlanificationType(),
             $tache->getDateFinReelle()?->format('Y-m-d H:i:s'),
             $tache->getTempsEstime(),
             $tache->getTempsReel(),
@@ -65,8 +66,8 @@ class TacheRepository
     {
         $sql = "
             UPDATE taches SET
-                mission_id = ?, nom = ?, description = ?, statut = ?, priorite = ?,
-                date_echeance = ?, date_planifiee = ?, date_fin_reelle = ?, temps_estime = ?, temps_reel = ?,
+                mission_id = ?, nom = ?, description = ?, statut = ?,
+                date_echeance = ?, date_planifiee = ?, heure_debut_planifiee = ?, planification_type = ?, date_fin_reelle = ?, temps_estime = ?, temps_reel = ?,
                 ordre = ?, assigne_a = ?, notes = ?, updated_at = ?
             WHERE id = ?
         ";
@@ -77,9 +78,10 @@ class TacheRepository
             $tache->getNom(),
             $tache->getDescription(),
             $tache->getStatut(),
-            $tache->getPriorite(),
             $tache->getDateEcheance()?->format('Y-m-d'),
             $tache->getDatePlanifiee()?->format('Y-m-d'),
+            $tache->getHeureDebutPlanifiee(),
+            $tache->getPlanificationType(),
             $tache->getDateFinReelle()?->format('Y-m-d H:i:s'),
             $tache->getTempsEstime(),
             $tache->getTempsReel(),
@@ -222,7 +224,7 @@ class TacheRepository
             LEFT JOIN missions m ON t.mission_id = m.id 
             LEFT JOIN clients c ON m.client_id = c.id 
             WHERE t.date_planifiee = ? 
-            ORDER BY t.priorite DESC, t.ordre ASC
+            ORDER BY t.date_echeance ASC, t.ordre ASC
         ";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$date]);
@@ -239,7 +241,7 @@ class TacheRepository
             LEFT JOIN missions m ON t.mission_id = m.id 
             LEFT JOIN clients c ON m.client_id = c.id 
             WHERE t.date_planifiee BETWEEN ? AND ? 
-            ORDER BY t.date_planifiee ASC, t.priorite DESC
+            ORDER BY t.date_planifiee ASC, t.date_echeance ASC
         ";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$dateDebut, $dateFin]);
@@ -257,7 +259,7 @@ class TacheRepository
             LEFT JOIN clients c ON m.client_id = c.id 
             WHERE t.date_planifiee IS NULL 
             AND t.statut NOT IN ('terminee', 'annulee')
-            ORDER BY t.priorite DESC, t.date_echeance ASC
+            ORDER BY t.date_echeance ASC, t.ordre ASC
         ";
         $stmt = $this->pdo->query($sql);
         $data = $stmt->fetchAll();
@@ -274,7 +276,7 @@ class TacheRepository
             LEFT JOIN clients c ON m.client_id = c.id 
             WHERE t.date_planifiee < DATE('now') 
             AND t.statut NOT IN ('terminee', 'annulee')
-            ORDER BY t.date_planifiee ASC, t.priorite DESC
+            ORDER BY t.date_planifiee ASC, t.date_echeance ASC
         ";
         $stmt = $this->pdo->query($sql);
         $data = $stmt->fetchAll();
@@ -291,7 +293,7 @@ class TacheRepository
             LEFT JOIN clients c ON m.client_id = c.id 
             WHERE t.date_planifiee = DATE('now') 
             AND t.statut NOT IN ('terminee', 'annulee')
-            ORDER BY t.priorite DESC, t.ordre ASC
+            ORDER BY t.date_echeance ASC, t.ordre ASC
         ";
         $stmt = $this->pdo->query($sql);
         $data = $stmt->fetchAll();
@@ -393,9 +395,10 @@ class TacheRepository
             nom: $data['nom'],
             description: $data['description'],
             statut: $data['statut'],
-            priorite: $data['priorite'],
             dateEcheance: $data['date_echeance'] ? new \DateTime($data['date_echeance']) : null,
             datePlanifiee: $data['date_planifiee'] ? new \DateTime($data['date_planifiee']) : null,
+            heureDebutPlanifiee: $data['heure_debut_planifiee'] ?? null,
+            planificationType: $data['planification_type'] ?? 'automatique',
             dateFinReelle: $data['date_fin_reelle'] ? new \DateTime($data['date_fin_reelle']) : null,
             tempsEstime: (int) $data['temps_estime'],
             tempsReel: (int) $data['temps_reel'],

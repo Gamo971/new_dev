@@ -308,12 +308,18 @@ async function toggleMissionTaches(missionId, event) {
         // Construire le HTML des tâches
         const tachesHTML = taches.map(tache => {
             // Construire les badges
-            const badgePriorite = Badge(tache.priorite_libelle || 'Inconnue', tache.priorite_couleur || 'bg-gray-100 text-gray-800');
             const badgeStatut = Badge(tache.statut_libelle || 'Inconnu', 'bg-gray-100 text-gray-800');
             
             // Construire les boutons d'action
             const btnEdit = ActionButton('fa-edit', `openTacheModal(${tache.id})`, 'Modifier', 'text-blue-600 hover:text-blue-800 text-xs');
             const btnDelete = ActionButton('fa-trash', `deleteTache(${tache.id})`, 'Supprimer', 'text-red-600 hover:text-red-800 text-xs');
+            
+            // Bouton re-planifier (seulement si la tâche a une échéance)
+            const btnReschedule = tache.date_echeance ? 
+                ActionButton('fa-magic', `rescheduleSingleTask(${tache.id})`, 'Re-planifier', 'text-purple-600 hover:text-purple-800 text-xs') : '';
+            
+            // Bouton temporaire pour marquer comme manuelle (pour les tests)
+            const btnMarkManual = ActionButton('fa-hand-paper', `markTaskAsManual(${tache.id})`, 'Marquer manuelle', 'text-orange-600 hover:text-orange-800 text-xs');
             
             // Construire les informations
             const infoEcheance = tache.date_echeance ? 
@@ -331,11 +337,12 @@ async function toggleMissionTaches(missionId, event) {
                         <h5 class="font-semibold text-gray-800 text-sm">${tache.nom || 'Sans nom'}</h5>
                         <div class="flex gap-1">
                             ${btnEdit}
+                            ${btnReschedule}
+                            ${btnMarkManual}
                             ${btnDelete}
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-2 mb-3">
-                        ${badgePriorite}
                         ${badgeStatut}
                     </div>
                     ${tache.description ? `<p class="text-xs text-gray-600 mb-2">${tache.description}</p>` : ''}

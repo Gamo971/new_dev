@@ -62,12 +62,11 @@ function updateMargeInfo() {
 }
 
 /**
- * Planification automatique basée sur l'échéance et la priorité
+ * Planification automatique basée sur l'échéance
  * Utilise l'algorithme intelligent avec gestion de capacité
  */
 async function autoScheduleTask() {
     const dateEcheance = document.getElementById('tacheDateEcheance').value;
-    const priorite = document.getElementById('tachePriorite').value;
     const tempsEstime = parseInt(document.getElementById('tacheTempsEstime').value) || 0;
     const tacheId = document.getElementById('tacheId').value || null;
     
@@ -82,7 +81,6 @@ async function autoScheduleTask() {
         id: tacheId,
         nom: document.getElementById('tacheNom').value || 'Nouvelle tâche',
         date_echeance: dateEcheance,
-        priorite: priorite,
         temps_estime: tempsEstime
     };
     
@@ -100,8 +98,15 @@ async function autoScheduleTask() {
         return;
     }
     
-    // Mettre à jour le champ
+    // Mettre à jour le champ de date
     document.getElementById('tacheDatePlanifiee').value = dateStr;
+    
+    // Définir l'heure de début planifiée (heure de début de travail)
+    const horaireDebut = window.parametresData?.horaire_debut?.valeur || '09:00';
+    const heureDebutInput = document.getElementById('tacheHeureDebutPlanifiee');
+    if (heureDebutInput) {
+        heureDebutInput.value = horaireDebut;
+    }
     
     // Mettre à jour l'affichage de la marge
     updateMargeInfo();
@@ -217,15 +222,8 @@ function calculateSmartScheduling(tache) {
     const heuresTravailJour = window.getHeuresTravailParJour ? getHeuresTravailParJour() : 7;
     const bufferPlanif = window.getBufferPlanification ? getBufferPlanification() : 0.2;
     
-    // Marge selon priorité (en jours ouvrés)
-    const marges = {
-        'urgente': 1,
-        'haute': 2,
-        'normale': 3,
-        'basse': 5
-    };
-    
-    let joursOuvresAvance = marges[tache.priorite] || 3;
+    // Marge par défaut (en jours ouvrés) - plus de système de priorité
+    let joursOuvresAvance = 3;
     
     // Ajuster selon temps estimé et heures de travail par jour
     const heuresEstimees = (tache.temps_estime || 0) / 60;
@@ -236,7 +234,7 @@ function calculateSmartScheduling(tache) {
         // Calculer le nombre de jours ouvrés nécessaires
         const joursNecessaires = Math.ceil(heuresAvecBuffer / heuresTravailJour);
         
-        // Prendre le maximum entre la marge de priorité et les jours nécessaires
+        // Prendre le maximum entre la marge par défaut et les jours nécessaires
         joursOuvresAvance = Math.max(joursOuvresAvance, joursNecessaires);
     }
     
@@ -277,30 +275,63 @@ async function rescheduleLateTasks() {
         const taches = result.data;
         const aujourdhui = new Date().toISOString().split('T')[0];
         
+        // Debug : afficher les données des tâches
+        console.log('🔍 Debug - Données des tâches:', taches.map(t => ({
+            id: t.id,
+            nom: t.nom,
+            statut: t.statut,
+            date_planifiee: t.date_planifiee,
+            planification_type: t.planification_type,
+            planification_manuelle: t.planification_manuelle,
+            planification_automatique: t.planification_automatique
+        })));
+        
         // Trouver les tâches à re-planifier
         const tachesAReplanifier = taches.filter(t => {
             // Exclure les tâches terminées ou annulées
             if (t.statut === 'terminee' || t.statut === 'annulee') {
+                console.log(`❌ Tâche ${t.id} exclue: statut ${t.statut}`);
+                return false;
+            }
+            
+            // Exclure les tâches planifiées manuellement
+            // Une tâche est considérée comme manuelle si :
+            // 1. planification_type = 'manuelle'
+            // 2. OU elle a une heure_debut_planifiee spécifique (différente de l'heure par défaut)
+            const horaireDebut = window.parametresData?.horaire_debut?.valeur || '09:00';
+            const heureDefaut = horaireDebut + ':00';
+            const isManuelle = t.planification_manuelle || 
+                              t.planification_type === 'manuelle' ||
+                              (t.heure_debut_planifiee && t.heure_debut_planifiee !== heureDefaut);
+            
+            if (isManuelle) {
+                console.log(`❌ Tâche ${t.id} exclue: planification manuelle (type: ${t.planification_type}, heure: ${t.heure_debut_planifiee})`);
                 return false;
             }
             
             // CAS 1 : Tâche non planifiée (avec échéance pour pouvoir calculer)
             if (!t.date_planifiee && t.date_echeance) {
+                console.log(`✅ Tâche ${t.id} à re-planifier: non planifiée`);
                 return true;
             }
             
-            // CAS 2 : Date de planification dépassée
-            if (t.date_planifiee && t.date_planifiee < aujourdhui) {
+            // CAS 2 : Date de planification dépassée (seulement pour les automatiques)
+            if (t.date_planifiee && t.date_planifiee < aujourdhui && (t.planification_automatique || t.planification_type === 'automatique')) {
+                console.log(`✅ Tâche ${t.id} à re-planifier: planification dépassée`);
                 return true;
             }
             
-            // CAS 3 : Échéance dépassée et non terminée
-            if (t.date_echeance && t.date_echeance < aujourdhui) {
+            // CAS 3 : Échéance dépassée et non terminée (seulement pour les automatiques)
+            if (t.date_echeance && t.date_echeance < aujourdhui && (t.planification_automatique || t.planification_type === 'automatique')) {
+                console.log(`✅ Tâche ${t.id} à re-planifier: échéance dépassée`);
                 return true;
             }
             
+            console.log(`❌ Tâche ${t.id} exclue: ne correspond à aucun critère`);
             return false;
         });
+        
+        console.log(`📋 Tâches à re-planifier: ${tachesAReplanifier.length}`, tachesAReplanifier.map(t => t.id));
         
         if (tachesAReplanifier.length === 0) {
             showNotification('✅ Toutes les tâches sont à jour !', 'success');
@@ -312,12 +343,26 @@ async function rescheduleLateTasks() {
         const planifRetard = tachesAReplanifier.filter(t => t.date_planifiee && t.date_planifiee < aujourdhui).length;
         const echeanceDepassee = tachesAReplanifier.filter(t => t.date_echeance && t.date_echeance < aujourdhui && !t.date_planifiee).length;
         
+        // Compter les tâches planifiées manuellement qui ne seront PAS re-planifiées
+        const tachesManuellesExclues = taches.filter(t => 
+            t.planification_manuelle && 
+            t.statut !== 'terminee' && 
+            t.statut !== 'annulee' && 
+            (t.date_planifiee && t.date_planifiee < aujourdhui)
+        ).length;
+        
         // Message de confirmation détaillé
-        let confirmMessage = `📋 Tâches à re-planifier : ${tachesAReplanifier.length}\n\n`;
+        let confirmMessage = `📋 Re-planification automatique\n\n`;
+        confirmMessage += `✅ Tâches à re-planifier (automatiques uniquement) : ${tachesAReplanifier.length}\n`;
         if (nonPlanifiees > 0) confirmMessage += `• ${nonPlanifiees} non planifiée(s)\n`;
         if (planifRetard > 0) confirmMessage += `• ${planifRetard} en retard de planification\n`;
         if (echeanceDepassee > 0) confirmMessage += `• ${echeanceDepassee} avec échéance dépassée\n`;
-        confirmMessage += `\nVoulez-vous les re-planifier automatiquement ?`;
+        
+        if (tachesManuellesExclues > 0) {
+            confirmMessage += `\n⚠️ ${tachesManuellesExclues} tâche(s) planifiée(s) manuellement seront conservées telles quelles.\n`;
+        }
+        
+        confirmMessage += `\nVoulez-vous procéder à la re-planification ?`;
         
         if (!confirm(confirmMessage)) {
             return;
@@ -357,13 +402,18 @@ async function rescheduleLateTasks() {
             
             if (nouvelleDatePlan) {
                 try {
-                    // Mettre à jour la tâche
+                    // Calculer l'heure de début depuis les paramètres horaires
+                    const horaireDebut = window.parametresData?.horaire_debut?.valeur || '09:00';
+                    const heureDebutPlanifiee = horaireDebut + ':00'; // Format HH:MM:SS
+                    
+                    // Mettre à jour la tâche avec date ET heure
                     const updateResponse = await fetch(`/api/taches/${tache.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            ...tache,
-                            date_planifiee: nouvelleDatePlan
+                            date_planifiee: nouvelleDatePlan,
+                            heure_debut_planifiee: heureDebutPlanifiee,
+                            planification_type: 'automatique'
                         })
                     });
                     
@@ -387,6 +437,11 @@ async function rescheduleLateTasks() {
         }
         if (erreurs > 0) {
             message += ` ⚠️ ${erreurs} erreur(s)`;
+        }
+        
+        // Ajouter info sur les tâches manuelles conservées
+        if (tachesManuellesExclues > 0) {
+            message += `\n\nℹ️ ${tachesManuellesExclues} tâche(s) planifiée(s) manuellement conservée(s).`;
         }
         
         showNotification(message, replanifiees > 0 ? 'success' : 'warning');
@@ -458,6 +513,118 @@ function getMargeInfo(tache) {
         return `<span class="text-yellow-600 text-xs">⏰ ${marge}j avant</span>`;
     } else {
         return `<span class="text-green-600 text-xs">✓ ${marge}j avant</span>`;
+    }
+}
+
+/**
+ * Marque une tâche comme planifiée manuellement (utilitaire pour les tests)
+ * @param {number} tacheId - ID de la tâche à marquer
+ */
+async function markTaskAsManual(tacheId) {
+    try {
+        const response = await fetch(`/api/taches/${tacheId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                planification_type: 'manuelle'
+            })
+        });
+        
+        if (response.ok) {
+            showNotification('✅ Tâche marquée comme planifiée manuellement', 'success');
+            await loadAllData();
+        } else {
+            throw new Error('Erreur lors de la mise à jour');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showNotification('❌ Erreur lors de la mise à jour', 'error');
+    }
+}
+
+/**
+ * Re-planifie une tâche individuelle (même si elle est planifiée manuellement)
+ * @param {number} tacheId - ID de la tâche à re-planifier
+ */
+async function rescheduleSingleTask(tacheId) {
+    try {
+        // Charger la tâche
+        const response = await fetch(`/api/taches/${tacheId}`);
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error('Impossible de charger la tâche');
+        }
+        
+        const tache = result.data;
+        
+        if (!tache.date_echeance) {
+            showNotification('Cette tâche n\'a pas de date d\'échéance. Impossible de la re-planifier automatiquement.', 'warning');
+            return;
+        }
+        
+        // Demander confirmation si c'est une tâche planifiée manuellement
+        let confirmMessage = `Re-planifier la tâche "${tache.nom}" ?`;
+        if (tache.planification_manuelle) {
+            confirmMessage = `⚠️ Cette tâche est planifiée manuellement.\n\nRe-planifier automatiquement "${tache.nom}" ?\n\nLa planification manuelle sera remplacée par une planification automatique.`;
+        }
+        
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+        
+        // Calculer la nouvelle date de planification
+        let nouvelleDatePlan;
+        if (window.calculateSmartSchedulingWithCapacity) {
+            nouvelleDatePlan = await calculateSmartSchedulingWithCapacity(tache);
+        } else {
+            nouvelleDatePlan = calculateSmartScheduling(tache);
+        }
+        
+        if (!nouvelleDatePlan) {
+            showNotification('Impossible de calculer une nouvelle date de planification', 'error');
+            return;
+        }
+        
+        // Calculer l'heure de début depuis les paramètres horaires
+        const horaireDebut = window.parametresData?.horaire_debut?.valeur || '09:00';
+        const heureDebutPlanifiee = horaireDebut + ':00'; // Format HH:MM:SS
+        
+        // Mettre à jour la tâche
+        const updateResponse = await fetch(`/api/taches/${tacheId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                date_planifiee: nouvelleDatePlan,
+                heure_debut_planifiee: heureDebutPlanifiee,
+                planification_type: 'automatique'
+            })
+        });
+        
+        if (updateResponse.ok) {
+            const message = tache.planification_manuelle 
+                ? `✅ Tâche "${tache.nom}" re-planifiée automatiquement (planification manuelle remplacée)`
+                : `✅ Tâche "${tache.nom}" re-planifiée avec succès`;
+            
+            showNotification(message, 'success');
+            
+            // Recharger les données
+            await loadAllData();
+            
+            // Si on est sur l'onglet Planning, rafraîchir la vue
+            if (document.getElementById('planning')?.classList.contains('active')) {
+                const activeView = document.querySelector('.view-btn.active')?.dataset.view;
+                if (activeView) {
+                    showPlanningView(activeView);
+                }
+            }
+        } else {
+            throw new Error('Erreur lors de la mise à jour');
+        }
+        
+    } catch (error) {
+        console.error('Erreur re-planification individuelle:', error);
+        showNotification('❌ Erreur lors de la re-planification : ' + error.message, 'error');
     }
 }
 

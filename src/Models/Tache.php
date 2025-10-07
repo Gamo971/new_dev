@@ -11,9 +11,10 @@ class Tache
     private string $nom;
     private ?string $description;
     private string $statut;
-    private string $priorite;
     private ?\DateTime $dateEcheance;
     private ?\DateTime $datePlanifiee;
+    private ?string $heureDebutPlanifiee;
+    private string $planificationType;
     private ?\DateTime $dateFinReelle;
     private int $tempsEstime;
     private int $tempsReel;
@@ -28,9 +29,10 @@ class Tache
         string $nom,
         ?string $description = null,
         string $statut = 'a_faire',
-        string $priorite = 'normale',
         ?\DateTime $dateEcheance = null,
         ?\DateTime $datePlanifiee = null,
+        ?string $heureDebutPlanifiee = null,
+        string $planificationType = 'automatique',
         ?\DateTime $dateFinReelle = null,
         int $tempsEstime = 0,
         int $tempsReel = 0,
@@ -46,9 +48,10 @@ class Tache
         $this->nom = $nom;
         $this->description = $description;
         $this->statut = $statut;
-        $this->priorite = $priorite;
         $this->dateEcheance = $dateEcheance;
         $this->datePlanifiee = $datePlanifiee;
+        $this->heureDebutPlanifiee = $heureDebutPlanifiee;
+        $this->planificationType = $planificationType;
         $this->dateFinReelle = $dateFinReelle;
         $this->tempsEstime = $tempsEstime;
         $this->tempsReel = $tempsReel;
@@ -85,10 +88,6 @@ class Tache
         return $this->statut;
     }
 
-    public function getPriorite(): string
-    {
-        return $this->priorite;
-    }
 
     public function getDateEcheance(): ?\DateTime
     {
@@ -99,6 +98,17 @@ class Tache
     {
         return $this->datePlanifiee;
     }
+
+    public function getHeureDebutPlanifiee(): ?string
+    {
+        return $this->heureDebutPlanifiee;
+    }
+
+    public function getPlanificationType(): string
+    {
+        return $this->planificationType;
+    }
+
 
     public function getDateFinReelle(): ?\DateTime
     {
@@ -170,11 +180,6 @@ class Tache
         $this->updatedAt = new \DateTime();
     }
 
-    public function setPriorite(string $priorite): void
-    {
-        $this->priorite = $priorite;
-        $this->updatedAt = new \DateTime();
-    }
 
     public function setDateEcheance(?\DateTime $dateEcheance): void
     {
@@ -187,6 +192,19 @@ class Tache
         $this->datePlanifiee = $datePlanifiee;
         $this->updatedAt = new \DateTime();
     }
+
+    public function setHeureDebutPlanifiee(?string $heureDebutPlanifiee): void
+    {
+        $this->heureDebutPlanifiee = $heureDebutPlanifiee;
+        $this->updatedAt = new \DateTime();
+    }
+
+    public function setPlanificationType(string $planificationType): void
+    {
+        $this->planificationType = $planificationType;
+        $this->updatedAt = new \DateTime();
+    }
+
 
     public function setDateFinReelle(?\DateTime $dateFinReelle): void
     {
@@ -236,27 +254,6 @@ class Tache
         };
     }
 
-    public function getPrioriteLibelle(): string
-    {
-        return match ($this->priorite) {
-            'basse' => 'Basse',
-            'normale' => 'Normale',
-            'haute' => 'Haute',
-            'urgente' => 'Urgente',
-            default => 'Inconnue'
-        };
-    }
-
-    public function getPrioriteCouleur(): string
-    {
-        return match ($this->priorite) {
-            'basse' => 'bg-green-100 text-green-800',
-            'normale' => 'bg-blue-100 text-blue-800',
-            'haute' => 'bg-yellow-100 text-yellow-800',
-            'urgente' => 'bg-red-100 text-red-800',
-            default => 'bg-gray-100 text-gray-800'
-        };
-    }
 
     public function getTempsEstimeFormate(): string
     {
@@ -311,6 +308,25 @@ class Tache
         return $this->datePlanifiee !== null;
     }
 
+    public function isPlanificationManuelle(): bool
+    {
+        return $this->planificationType === 'manuelle';
+    }
+
+    public function isPlanificationAutomatique(): bool
+    {
+        return $this->planificationType === 'automatique';
+    }
+
+    public function getPlanificationTypeLibelle(): string
+    {
+        return match ($this->planificationType) {
+            'manuelle' => 'Manuelle',
+            'automatique' => 'Automatique',
+            default => 'Inconnue'
+        };
+    }
+
     public function isEnRetardPlanification(): bool
     {
         if (!$this->datePlanifiee || $this->statut === 'terminee') {
@@ -360,11 +376,13 @@ class Tache
             'description' => $this->description,
             'statut' => $this->statut,
             'statut_libelle' => $this->getStatutLibelle(),
-            'priorite' => $this->priorite,
-            'priorite_libelle' => $this->getPrioriteLibelle(),
-            'priorite_couleur' => $this->getPrioriteCouleur(),
             'date_echeance' => $this->dateEcheance?->format('Y-m-d'),
             'date_planifiee' => $this->datePlanifiee?->format('Y-m-d'),
+            'heure_debut_planifiee' => $this->heureDebutPlanifiee,
+            'planification_type' => $this->planificationType,
+            'planification_type_libelle' => $this->getPlanificationTypeLibelle(),
+            'planification_manuelle' => $this->isPlanificationManuelle(),
+            'planification_automatique' => $this->isPlanificationAutomatique(),
             'date_fin_reelle' => $this->dateFinReelle?->format('Y-m-d H:i:s'),
             'temps_estime' => $this->tempsEstime,
             'temps_reel' => $this->tempsReel,

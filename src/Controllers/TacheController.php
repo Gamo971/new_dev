@@ -72,9 +72,10 @@ class TacheController extends ApiController
                 nom: $this->sanitizeString($data['nom']),
                 description: $this->sanitizeString($data['description'] ?? null),
                 statut: $this->sanitizeString($data['statut'] ?? 'a_faire'),
-                priorite: $this->sanitizeString($data['priorite'] ?? 'normale'),
                 dateEcheance: isset($data['date_echeance']) ? new \DateTime($data['date_echeance']) : null,
                 datePlanifiee: isset($data['date_planifiee']) ? new \DateTime($data['date_planifiee']) : null,
+                heureDebutPlanifiee: $this->sanitizeString($data['heure_debut_planifiee'] ?? null),
+                planificationType: $this->sanitizeString($data['planification_type'] ?? 'automatique'),
                 tempsEstime: $this->sanitizeInt($data['temps_estime'] ?? 0) ?? 0,
                 ordre: $this->sanitizeInt($data['ordre'] ?? 0) ?? 0,
                 assigneA: $this->sanitizeString($data['assigne_a'] ?? null),
@@ -129,14 +130,17 @@ class TacheController extends ApiController
             if (isset($data['statut'])) {
                 $tache->setStatut($this->sanitizeString($data['statut']));
             }
-            if (isset($data['priorite'])) {
-                $tache->setPriorite($this->sanitizeString($data['priorite']));
-            }
             if (isset($data['date_echeance'])) {
                 $tache->setDateEcheance(new \DateTime($data['date_echeance']));
             }
             if (isset($data['date_planifiee'])) {
                 $tache->setDatePlanifiee(!empty($data['date_planifiee']) ? new \DateTime($data['date_planifiee']) : null);
+            }
+            if (isset($data['heure_debut_planifiee'])) {
+                $tache->setHeureDebutPlanifiee($this->sanitizeString($data['heure_debut_planifiee']));
+            }
+            if (isset($data['planification_type'])) {
+                $tache->setPlanificationType($this->sanitizeString($data['planification_type']));
             }
             if (isset($data['temps_estime'])) {
                 $tache->setTempsEstime($this->sanitizeInt($data['temps_estime']) ?? 0);

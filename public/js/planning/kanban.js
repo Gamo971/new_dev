@@ -74,7 +74,6 @@ function renderKanbanCard(tache) {
                     <h4 class="font-semibold text-gray-800 text-sm mb-1">${tache.nom}</h4>
                     ${tache.mission_nom ? `<p class="text-xs text-gray-500">📁 ${tache.mission_nom}</p>` : ''}
                 </div>
-                ${Badge(tache.priorite_libelle, tache.priorite_couleur)}
             </div>
             
             ${tache.description ? `<p class="text-xs text-gray-600 mb-2 line-clamp-2">${tache.description}</p>` : ''}

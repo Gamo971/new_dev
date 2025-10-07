@@ -125,8 +125,6 @@ header('Content-Type: text/html; charset=utf-8');
                             <select id="missionSortBy" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                                 <option value="date_creation_desc">📅 Plus récent</option>
                                 <option value="date_creation_asc">📅 Plus ancien</option>
-                                <option value="priorite_desc">🔴 Priorité (haute → basse)</option>
-                                <option value="priorite_asc">🟢 Priorité (basse → haute)</option>
                                 <option value="date_debut_asc">📆 Date début (proche → lointaine)</option>
                                 <option value="date_debut_desc">📆 Date début (lointaine → proche)</option>
                                 <option value="date_fin_asc">🏁 Date fin (proche → lointaine)</option>
@@ -185,30 +183,6 @@ header('Content-Type: text/html; charset=utf-8');
                                     </div>
                                 </div>
                                 
-                                <!-- Filtres par priorité -->
-                                <div class="p-4 border-t border-gray-200">
-                                    <label class="text-sm font-semibold text-gray-700 mb-2 block">
-                                        <i class="fas fa-exclamation-triangle mr-2"></i>Priorité:
-                                    </label>
-                                    <div class="flex flex-wrap gap-2">
-                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                            <input type="checkbox" class="mission-priorite-filter mr-2" value="basse" checked>
-                                            <span class="text-sm">🟢 Basse</span>
-                                        </label>
-                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                            <input type="checkbox" class="mission-priorite-filter mr-2" value="normale" checked>
-                                            <span class="text-sm">🟡 Normale</span>
-                                        </label>
-                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                            <input type="checkbox" class="mission-priorite-filter mr-2" value="haute" checked>
-                                            <span class="text-sm">🟠 Haute</span>
-                                        </label>
-                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                            <input type="checkbox" class="mission-priorite-filter mr-2" value="urgente" checked>
-                                            <span class="text-sm">🔴 Urgente</span>
-                                        </label>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -243,8 +217,6 @@ header('Content-Type: text/html; charset=utf-8');
                             <select id="tacheSortBy" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
                                 <option value="date_creation_desc">📅 Plus récent</option>
                                 <option value="date_creation_asc">📅 Plus ancien</option>
-                                <option value="priorite_desc">🔴 Priorité (haute → basse)</option>
-                                <option value="priorite_asc">🟢 Priorité (basse → haute)</option>
                                 <option value="echeance_asc">⏰ Échéance (proche → lointaine)</option>
                                 <option value="echeance_desc">⏰ Échéance (lointaine → proche)</option>
                                 <option value="statut">📊 Par statut</option>
@@ -295,30 +267,6 @@ header('Content-Type: text/html; charset=utf-8');
                                     </div>
                                 </div>
                                 
-                                <!-- Filtres par priorité -->
-                                <div class="p-4 border-t border-gray-200">
-                                    <label class="text-sm font-semibold text-gray-700 mb-2 block">
-                                        <i class="fas fa-exclamation-triangle mr-2"></i>Priorité:
-                                    </label>
-                                    <div class="flex flex-wrap gap-2">
-                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                            <input type="checkbox" class="tache-priorite-filter mr-2" value="basse" checked>
-                                            <span class="text-sm">🟢 Basse</span>
-                                        </label>
-                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                            <input type="checkbox" class="tache-priorite-filter mr-2" value="normale" checked>
-                                            <span class="text-sm">🟡 Normale</span>
-                                        </label>
-                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                            <input type="checkbox" class="tache-priorite-filter mr-2" value="haute" checked>
-                                            <span class="text-sm">🟠 Haute</span>
-                                        </label>
-                                        <label class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                            <input type="checkbox" class="tache-priorite-filter mr-2" value="urgente" checked>
-                                            <span class="text-sm">🔴 Urgente</span>
-                                        </label>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -670,15 +618,6 @@ header('Content-Type: text/html; charset=utf-8');
                                         <option value="annulee">Annulée</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Priorité</label>
-                                    <select id="missionPriorite" name="priorite" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                        <option value="basse">Basse</option>
-                                        <option value="normale">Normale</option>
-                                        <option value="haute">Haute</option>
-                                        <option value="urgente">Urgente</option>
-                                    </select>
-                                </div>
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -741,6 +680,7 @@ header('Content-Type: text/html; charset=utf-8');
                         
                         <form id="tacheForm" onsubmit="saveTache(event)">
                             <input type="hidden" id="tacheId" name="id">
+                            <input type="hidden" id="tacheHeurePrioritaire" name="heure_prioritaire" value="false">
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div>
@@ -770,15 +710,6 @@ header('Content-Type: text/html; charset=utf-8');
                                         <option value="annulee">Annulée</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Priorité</label>
-                                    <select id="tachePriorite" name="priorite" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                                        <option value="basse">Basse</option>
-                                        <option value="normale">Normale</option>
-                                        <option value="haute">Haute</option>
-                                        <option value="urgente">Urgente</option>
-                                    </select>
-                                </div>
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -801,7 +732,15 @@ header('Content-Type: text/html; charset=utf-8');
                                     </div>
                                     <p class="text-xs text-gray-500 mt-1">Quand vous prévoyez de travailler dessus</p>
                                 </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-clock text-blue-500 mr-1"></i>Heure de début planifiée
+                                    </label>
+                                    <input type="time" id="tacheHeureDebutPlanifiee" name="heure_debut_planifiee" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                    <p class="text-xs text-gray-500 mt-1">Heure à laquelle vous prévoyez de commencer</p>
+                                </div>
                             </div>
+                            
                             
                             <!-- Info marge de sécurité -->
                             <div id="margeInfo" class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg hidden">

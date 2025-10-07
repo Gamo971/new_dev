@@ -187,7 +187,7 @@ function initFullCalendar() {
             start: startDateTime,
             end: endDateTime,
             backgroundColor: t.overflow ? '#f59e0b' : getPlanificationColor(t), // Orange si débordement
-            borderColor: getPriorityColor(t.priorite),
+            borderColor: t.planification_manuelle ? '#3b82f6' : '#10b981', // Bleu pour manuelle, vert pour automatique
             borderWidth: 2,
             extendedProps: {
                 tache: t,
@@ -206,7 +206,7 @@ function initFullCalendar() {
                 start: t.date_echeance,
                 allDay: true,
                 backgroundColor: '#cbd5e1',
-                borderColor: getPriorityColor(t.priorite),
+                borderColor: t.planification_manuelle ? '#3b82f6' : '#10b981', // Bleu pour manuelle, vert pour automatique
                 display: 'background',
                 extendedProps: {
                     tache: t,
@@ -324,32 +324,54 @@ function getPlanificationColor(tache) {
 }
 
 /**
- * Met à jour la date de planification d'une tâche
+ * Met à jour la date et l'heure de planification d'une tâche
  * @param {number} tacheId - ID de la tâche
  * @param {string} newDate - Nouvelle date (YYYY-MM-DD)
+ * @param {string} newTime - Nouvelle heure (HH:MM:SS)
+ * @param {string} planificationType - Type de planification ('manuelle' ou 'automatique')
  */
-async function updateTacheDate(tacheId, newDate) {
+async function updateTacheDate(tacheId, newDate, newTime, planificationType = 'automatique') {
     try {
+        console.log(`Mise à jour de la tâche ${tacheId} avec la date ${newDate}, heure ${newTime}, type ${planificationType}`);
+        
+        const updateData = { 
+            date_planifiee: newDate,
+            heure_debut_planifiee: newTime,
+            planification_type: planificationType
+        };
+        
+        console.log('🔄 Mise à jour drag & drop:', updateData);
+        
         const response = await fetch(`/api/taches/${tacheId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ date_planifiee: newDate })
+            body: JSON.stringify(updateData)
         });
         
         const result = await response.json();
+        console.log('Résultat de la mise à jour:', result);
         
         if (result.success) {
-            // Mettre à jour localement
-            const tache = taches.find(t => t.id === tacheId);
-            if (tache) {
-                tache.date_planifiee = newDate;
+            // Mettre à jour la tâche dans la variable globale taches
+            const tacheIndex = taches.findIndex(t => t.id === tacheId);
+            if (tacheIndex !== -1) {
+                taches[tacheIndex].date_planifiee = newDate;
+                taches[tacheIndex].heure_debut_planifiee = newTime;
+                taches[tacheIndex].planification_type = planificationType;
+                console.log(`✅ Tâche ${tacheId} mise à jour localement:`, {
+                    date: newDate,
+                    heure: newTime,
+                    type: planificationType
+                });
+            } else {
+                console.warn(`⚠️ Tâche ${tacheId} non trouvée dans la liste locale`);
             }
             
-            showNotification('Date mise à jour', 'success');
+            showNotification('Date et heure de planification mises à jour avec succès', 'success');
         } else {
-            showNotification('Erreur: ' + (result.error || 'Impossible de modifier la date'), 'error');
+            showNotification('Erreur: ' + (result.error || 'Impossible de modifier la planification'), 'error');
             // Recharger le calendrier
             loadTaches().then(() => initFullCalendar());
         }
